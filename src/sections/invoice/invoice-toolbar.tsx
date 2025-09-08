@@ -1,7 +1,7 @@
 import type { IInvoice } from 'src/types/invoice';
 
 import { useCallback } from 'react';
-import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFViewer, PDFDownloadLink, BlobProviderParams } from '@react-pdf/renderer';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -51,17 +51,17 @@ export function InvoiceToolbar({ invoice, currentStatus, statusOptions, onChange
         fileName={invoice?.invoiceNumber}
         style={{ textDecoration: 'none' }}
       >
-        {({ loading }) => (
+        {((props: BlobProviderParams) => (
           <Tooltip title="Download">
             <IconButton>
-              {loading ? (
+              {props.loading ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
                 <Iconify icon="eva:cloud-download-fill" />
               )}
             </IconButton>
           </Tooltip>
-        )}
+        )) as any}
       </PDFDownloadLink>
     </NoSsr>
   );

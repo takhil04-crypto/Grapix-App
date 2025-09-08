@@ -8,7 +8,7 @@ import type { UseWalktourProps, UseWalktourReturn } from './types';
 // ----------------------------------------------------------------------
 
 export function useWalktour({ steps, defaultRun }: UseWalktourProps): UseWalktourReturn {
-  const helpers = useRef<StoreHelpers>();
+  const helpers = useRef<StoreHelpers | null>(null);
 
   const [run, setRun] = useState(!!defaultRun);
 

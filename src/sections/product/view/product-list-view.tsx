@@ -138,7 +138,7 @@ export function ProductListView() {
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filters.state, selectedRowIds]
+    [filters.state, selectedRowIds, setFilterButtonEl, canReset, dataFiltered.length, confirmRows.onTrue]
   );
 
   const columns: GridColDef[] = [
@@ -274,7 +274,6 @@ export function ProductListView() {
             }}
             slotProps={{
               panel: { anchorEl: filterButtonEl },
-              toolbar: { setFilterButtonEl },
               columnsManagement: { getTogglableColumns },
             }}
             sx={{ [`& .${gridClasses.cell}`]: { alignItems: 'center', display: 'inline-flex' } }}

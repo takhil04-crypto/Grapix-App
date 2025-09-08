@@ -263,7 +263,7 @@ export function DataGridCustom({ data: rows }: Props) {
       }}
       slotProps={{
         panel: { anchorEl: filterButtonEl },
-        toolbar: { setFilterButtonEl, showQuickFilter: true },
+        toolbar: { showQuickFilter: true },
         columnsManagement: { getTogglableColumns },
       }}
       sx={{ [`& .${gridClasses.cell}`]: { alignItems: 'center', display: 'inline-flex' } }}
@@ -273,14 +273,11 @@ export function DataGridCustom({ data: rows }: Props) {
 
 // ----------------------------------------------------------------------
 
-interface CustomToolbarProps {
-  setFilterButtonEl: React.Dispatch<React.SetStateAction<HTMLButtonElement | null>>;
-}
-
-function CustomToolbar({ setFilterButtonEl }: CustomToolbarProps) {
+function CustomToolbar(props: any) {
+  const { setFilterButtonEl, showQuickFilter } = props;
   return (
     <GridToolbarContainer>
-      <GridToolbarQuickFilter />
+      {showQuickFilter && <GridToolbarQuickFilter />}
       <Box sx={{ flexGrow: 1 }} />
       <GridToolbarColumnsButton />
       <GridToolbarFilterButton ref={setFilterButtonEl} />

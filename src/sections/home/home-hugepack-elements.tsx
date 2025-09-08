@@ -136,10 +136,10 @@ function ScrollContent() {
   const theme = useTheme();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const containerRect = useClientRect(containerRef);
+  const containerRect = useClientRect(containerRef as React.RefObject<HTMLDivElement>);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollRect = useClientRect(scrollRef);
+  const scrollRect = useClientRect(scrollRef as React.RefObject<HTMLDivElement>);
 
   const [startScroll, setStartScroll] = useState(false);
 

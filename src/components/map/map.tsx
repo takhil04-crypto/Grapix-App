@@ -7,6 +7,19 @@ import { CONFIG } from 'src/config-global';
 
 // ----------------------------------------------------------------------
 
-export const Map = forwardRef<MapRef, MapProps>(({ ...other }, ref) => (
-  <MapGL ref={ref} mapboxAccessToken={CONFIG.mapboxApiKey} {...other} />
+const allowedLogoPositions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
+
+export const Map = forwardRef<MapRef, MapProps>(({ projection, logoPosition, terrain, ...other }, ref) => (
+  <MapGL
+    ref={ref}
+    mapboxAccessToken={CONFIG.mapboxApiKey}
+    projection={typeof projection === 'string' ? undefined : projection}
+    logoPosition={
+      allowedLogoPositions.includes(logoPosition as any)
+        ? (logoPosition as typeof allowedLogoPositions[number])
+        : undefined
+    }
+    terrain={terrain === null ? undefined : terrain}
+    {...other}
+  />
 ));

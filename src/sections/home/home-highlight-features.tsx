@@ -133,11 +133,11 @@ type ScrollContentProps = {
 function ScrollContent({ containerRoot }: ScrollContentProps) {
   const theme = useTheme();
 
-  const containerRef = useRef(null);
-  const containeRect = useClientRect(containerRef);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const containeRect = useClientRect(containerRef as React.RefObject<HTMLDivElement>);
 
-  const scrollRef = useRef(null);
-  const scrollRect = useClientRect(scrollRef);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRect = useClientRect(scrollRef as React.RefObject<HTMLDivElement>);
 
   const { scrollYProgress } = useScroll({ target: containerRef });
 
