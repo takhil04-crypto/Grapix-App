@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '../../../lib/db';
 
-// GET: List all users
+// ✅ GET: List all users
 export async function GET() {
-  const [rows] = await pool.query('SELECT id, email, name, created_at, updated_at FROM users');
-  return NextResponse.json(rows);
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, name, email, phone, country, state, city, address1, address2, zip, created_at, updated_at 
+       FROM users`
+    );
+    return NextResponse.json(rows);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 400 });
+  }
 }
 
-// POST: Create a new user
-
+// ✅ POST: Create a new user (you already did this, unchanged)
 export async function POST(req: NextRequest) {
   const {
     name,
@@ -23,14 +29,13 @@ export async function POST(req: NextRequest) {
   } = await req.json();
 
   try {
-    const [rows] = await pool.query('SELECT DATABASE() as db');
-console.log('Connected to DB:', rows);
     const [result]: any = await pool.query(
       `INSERT INTO users 
        (name, email, phone, country, state, city, address1, address2, zip) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, email, phone, country, state, city, address1, address2, zip]
     );
+
     return NextResponse.json({
       id: result.insertId,
       name,
@@ -48,22 +53,47 @@ console.log('Connected to DB:', rows);
   }
 }
 
-
-// PUT: Update a user
+// ✅ PUT: Update a user
 export async function PUT(req: NextRequest) {
-  const { id, email, name, password } = await req.json();
+  const {
+    id,
+    name,
+    email,
+    phone,
+    country,
+    state,
+    city,
+    address1,
+    address2,
+    zip
+  } = await req.json();
+
   try {
     await pool.query(
-      'UPDATE users SET email=?, name=?, password=? WHERE id=?',
-      [email, name, password, id]
+      `UPDATE users 
+       SET name=?, email=?, phone=?, country=?, state=?, city=?, address1=?, address2=?, zip=?, updated_at=NOW() 
+       WHERE id=?`,
+      [name, email, phone, country, state, city, address1, address2, zip, id]
     );
-    return NextResponse.json({ id, email, name });
+
+    return NextResponse.json({
+      id,
+      name,
+      email,
+      phone,
+      country,
+      state,
+      city,
+      address1,
+      address2,
+      zip
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }
 
-// DELETE: Delete a user
+// ✅ DELETE: Delete a user
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
   try {
