@@ -8,19 +8,46 @@ export async function GET() {
 }
 
 // POST: Create a new user
+
 export async function POST(req: NextRequest) {
-  const { email, name, password } = await req.json();
+  const {
+    name,
+    email,
+    phone,
+    country,
+    state,
+    city,
+    address1,
+    address2,
+    zip
+  } = await req.json();
+
   try {
+    const [rows] = await pool.query('SELECT DATABASE() as db');
+console.log('Connected to DB:', rows);
     const [result]: any = await pool.query(
-      'INSERT INTO users (email, name, password) VALUES (?, ?, ?)',
-      [email, name, password]
+      `INSERT INTO users 
+       (name, email, phone, country, state, city, address1, address2, zip) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, email, phone, country, state, city, address1, address2, zip]
     );
-    console.log('result', result);
-    return NextResponse.json({ id: result.insertId, email, name });
+    return NextResponse.json({
+      id: result.insertId,
+      name,
+      email,
+      phone,
+      country,
+      state,
+      city,
+      address1,
+      address2,
+      zip
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }
+
 
 // PUT: Update a user
 export async function PUT(req: NextRequest) {
