@@ -25,6 +25,7 @@ export function RHFPhoneInput({ name, helperText, ...other }: Props) {
           onChange={(newValue) => setValue(name, newValue, { shouldValidate: true })}
           error={!!error}
           helperText={error ? error?.message : helperText}
+          country="IN"
           {...other}
         />
       )}

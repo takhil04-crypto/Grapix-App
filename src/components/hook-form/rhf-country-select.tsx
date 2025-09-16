@@ -1,5 +1,5 @@
 import type { CountrySelectProps } from 'src/components/country-select';
-
+import { useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { CountrySelect } from 'src/components/country-select';
@@ -13,7 +13,13 @@ export function RHFCountrySelect({
 }: CountrySelectProps & {
   name: string;
 }) {
-  const { control, setValue } = useFormContext();
+  const { control, setValue, getValues } = useFormContext();
+   useEffect(() => {
+    // Set default to 'India' if not already set
+    if (!getValues(name)) {
+      setValue(name, 'India', { shouldValidate: true });
+    }
+  }, [name, setValue, getValues]);
 
   return (
     <Controller

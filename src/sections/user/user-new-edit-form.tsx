@@ -30,21 +30,22 @@ import { Form, Field, schemaHelper } from 'src/components/hook-form';
 export type NewUserSchemaType = zod.infer<typeof NewUserSchema>;
 
 export const NewUserSchema = zod.object({
-  avatarUrl: schemaHelper.file({ message: { required_error: 'Avatar is required!' } }),
+  // avatarUrl: schemaHelper.file({ message: { required_error: 'Avatar is required!' } }),
   name: zod.string().min(1, { message: 'Name is required!' }),
   email: zod
     .string()
     .min(1, { message: 'Email is required!' })
     .email({ message: 'Email must be a valid email address!' }),
   phoneNumber: schemaHelper.phoneNumber({ isValidPhoneNumber }),
-  country: schemaHelper.objectOrNull<string | null>({
+  country: schemaHelper.objectOrNull<{ label: string } | string | null>({
     message: { required_error: 'Country is required!' },
   }),
-  address: zod.string().min(1, { message: 'Address is required!' }),
-  company: zod.string().min(1, { message: 'Company is required!' }),
+  address1: zod.string().min(1, { message: 'Address Line 1 is required!' }),
+  address2: zod.string().min(1, { message: 'Address Line 2 is required!' }),
+  // company: zod.string().min(1, { message: 'Company is required!' }),
   state: zod.string().min(1, { message: 'State is required!' }),
   city: zod.string().min(1, { message: 'City is required!' }),
-  role: zod.string().min(1, { message: 'Role is required!' }),
+  // role: zod.string().min(1, { message: 'Role is required!' }),
   zipCode: zod.string().min(1, { message: 'Zip code is required!' }),
   // Not required
   status: zod.string(),
@@ -71,9 +72,9 @@ export function UserNewEditForm({ currentUser }: Props) {
       country: currentUser?.country || '',
       state: currentUser?.state || '',
       city: currentUser?.city || '',
-      address: currentUser?.address || '',
+      address1: currentUser?.address1 || '',
       zipCode: currentUser?.zipCode || '',
-      company: currentUser?.company || '',
+      address2: currentUser?.address2 || '',
       role: currentUser?.role || '',
     }),
     [currentUser]
@@ -96,13 +97,38 @@ export function UserNewEditForm({ currentUser }: Props) {
   const values = watch();
 
   const onSubmit = handleSubmit(async (data) => {
+    // Map form data to API payload
+    const payload = {
+      name: data.name,
+      email: data.email,
+      phone: data.phoneNumber,
+      country: typeof data.country === 'string' ? data.country : data.country?.label || '',
+      state: data.state,
+      city: data.city,
+      address1: data.address1,
+      address2: data.address2,
+      zip: data.zipCode,
+    };
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await fetch('http://localhost:8082/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create user');
+      }
+
       reset();
-      toast.success(currentUser ? 'Update success!' : 'Create success!');
+      toast.success('User created successfully!');
       router.push(paths.dashboard.user.list);
-      console.info('DATA', data);
+      // Optionally log response
+      const result = await response.json();
+      console.info('API response:', result);
     } catch (error) {
+      toast.error('Failed to create user!');
       console.error(error);
     }
   });
@@ -231,10 +257,10 @@ export function UserNewEditForm({ currentUser }: Props) {
 
               <Field.Text name="state" label="State/region" />
               <Field.Text name="city" label="City" />
-              <Field.Text name="address" label="Address" />
+              <Field.Text name="address1" label="Address Line1" />
+              <Field.Text name="address2" label="Address Line2" />
               <Field.Text name="zipCode" label="Zip/code" />
-              <Field.Text name="company" label="Company" />
-              <Field.Text name="role" label="Role" />
+              {/* <Field.Text name="role" label="Role" /> */}
             </Box>
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
