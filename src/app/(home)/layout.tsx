@@ -1,4 +1,7 @@
-import { MainLayout } from 'src/layouts/main';
+"use client";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { CONFIG } from 'src/config-global';
 
 // ----------------------------------------------------------------------
 
@@ -7,5 +10,11 @@ type Props = {
 };
 
 export default function Layout({ children }: Props) {
-  return <MainLayout>{children}</MainLayout>;
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace(CONFIG.auth.redirectPath);
+  }, [router]);
+
+  return null;
 }
