@@ -9,11 +9,11 @@ export async function GET(
   try {
     const [rows]: any = await pool.query(
       `SELECT id, name, email, phone, country, state, city, address1, address2, zip, created_at, updated_at 
-       FROM users WHERE id = ?`,
+       FROM customers WHERE id = ?`,
       [id]
     );
     if (!rows || rows.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
     }
     return NextResponse.json(rows[0]);
   } catch (err: any) {

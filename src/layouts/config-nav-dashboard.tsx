@@ -66,7 +66,7 @@ export const navData = [
     subheader: 'Management',
     items: [
       {
-        title: 'User',
+        title: 'Customer',
         path: paths.dashboard.user.root,
         icon: ICONS.user,
         children: [

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '../../../lib/db';
 
-// ✅ GET: List all users
+// ✅ GET: List all customers
 export async function GET() {
   try {
     const [rows] = await pool.query(
       `SELECT id, name, email, phone, country, state, city, address1, address2, zip, created_at, updated_at 
-       FROM users`
+       FROM customers`
     );
     return NextResponse.json(rows);
   } catch (err: any) {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const [result]: any = await pool.query(
-      `INSERT INTO users 
+      `INSERT INTO customers 
        (name, email, phone, country, state, city, address1, address2, zip) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, email, phone, country, state, city, address1, address2, zip]
@@ -70,7 +70,7 @@ export async function PUT(req: NextRequest) {
 
   try {
     await pool.query(
-      `UPDATE users 
+      `UPDATE customers 
        SET name=?, email=?, phone=?, country=?, state=?, city=?, address1=?, address2=?, zip=?, updated_at=NOW() 
        WHERE id=?`,
       [name, email, phone, country, state, city, address1, address2, zip, id]
@@ -97,8 +97,15 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
   try {
-    await pool.query('DELETE FROM users WHERE id=?', [id]);
-    return NextResponse.json({ success: true });
+    // Support both single id and array of ids
+    const ids = Array.isArray(id) ? id : [id];
+    if (!ids.length) {
+      return NextResponse.json({ error: 'No IDs provided' }, { status: 400 });
+    }
+    // Create placeholders for the number of ids
+    const placeholders = ids.map(() => '?').join(',');
+    await pool.query(`DELETE FROM customers WHERE id IN (${placeholders})`, ids);
+    return NextResponse.json({ success: true, deleted: ids.length });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }

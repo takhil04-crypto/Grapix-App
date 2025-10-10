@@ -111,24 +111,24 @@ export function UserNewEditForm({ currentUser }: Props) {
     };
 
     try {
-      const response = await fetch('http://localhost:8082/api/users', {
+      const response = await fetch('http://localhost:8082/api/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create user');
+        throw new Error('Failed to create customer');
       }
 
       reset();
-      toast.success('User created successfully!');
+      toast.success('Customer created successfully!');
       router.push(paths.dashboard.user.list);
       // Optionally log response
       const result = await response.json();
       console.info('API response:', result);
     } catch (error) {
-      toast.error('Failed to create user!');
+      toast.error('Failed to create customer!');
       console.error(error);
     }
   });
@@ -219,7 +219,7 @@ export function UserNewEditForm({ currentUser }: Props) {
                     Email verified
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    Disabling this will automatically send the user a verification email
+                    Disabling this will automatically send the customer a verification email
                   </Typography>
                 </>
               }
@@ -229,7 +229,7 @@ export function UserNewEditForm({ currentUser }: Props) {
             {currentUser && (
               <Stack justifyContent="center" alignItems="center" sx={{ mt: 3 }}>
                 <Button variant="soft" color="error">
-                  Delete user
+                  Delete customer
                 </Button>
               </Stack>
             )}
@@ -265,7 +265,7 @@ export function UserNewEditForm({ currentUser }: Props) {
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentUser ? 'Create user' : 'Save changes'}
+                {!currentUser ? 'Create Customer' : 'Save changes'}
               </LoadingButton>
             </Stack>
           </Card>

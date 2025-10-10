@@ -82,6 +82,7 @@ export type IUserItem = {
   email: string;
   state: string;
   status: string;
+  address: string;
   address1: string;
   address2: string;
   country: string;

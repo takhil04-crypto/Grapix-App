@@ -2,7 +2,7 @@
 
 import type { IUserItem, IUserTableFilters } from 'src/types/user';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -54,8 +54,8 @@ const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_STATUS_OPTIONS];
 const TABLE_HEAD = [
   { id: 'name', label: 'Name' },
   { id: 'phoneNumber', label: 'Phone number', width: 180 },
-  { id: 'company', label: 'Company', width: 220 },
-  { id: 'role', label: 'Role', width: 180 },
+  { id: 'address', label: 'Address', width: 220 },
+  { id: 'city', label: 'City', width: 180 },
   { id: 'status', label: 'Status', width: 100 },
   { id: '', width: 88 },
 ];
@@ -69,8 +69,28 @@ export function UserListView() {
 
   const confirm = useBoolean();
 
-  const [tableData, setTableData] = useState<IUserItem[]>(_userList);
-
+  const [tableData, setTableData] = useState<IUserItem[]>([]);
+    useEffect(() => {
+    fetch('http://localhost:8082/api/customers')
+      .then((res) => res.json())
+      .then((data) => {
+        // Map API data to match IUserItem and table columns
+        const mapped = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          phoneNumber: item.phone,
+          address: [item.address1, item.address2].filter(Boolean).join(', '),
+          city: item.city,
+          status: 'active',
+          // add other fields if needed
+        }));
+        console.log('mapped',mapped);
+        setTableData(mapped);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch customers:', err);
+      });
+  }, []);
   const filters = useSetState<IUserTableFilters>({ name: '', role: [], status: 'all' });
 
   const dataFiltered = applyFilter({
@@ -78,7 +98,7 @@ export function UserListView() {
     comparator: getComparator(table.order, table.orderBy),
     filters: filters.state,
   });
-
+  console.log('dataFiltered',dataFiltered);
   const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
 
   const canReset =
@@ -86,30 +106,46 @@ export function UserListView() {
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
-  const handleDeleteRow = useCallback(
-    (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
-      toast.success('Delete success!');
-
-      setTableData(deleteRow);
-
-      table.onUpdatePageDeleteRow(dataInPage.length);
+ const handleDeleteRow = useCallback(
+    async (id: string) => {
+      try {
+        const response = await fetch('http://localhost:8082/api/customers', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: [id] }),
+        });
+        if (!response.ok) throw new Error('Failed to delete');
+        const deleteRow = tableData.filter((row) => row.id !== id);
+        toast.success('Delete success!');
+        setTableData(deleteRow);
+        table.onUpdatePageDeleteRow(dataInPage.length);
+      } catch (error) {
+        toast.error('Delete failed!');
+        console.error(error);
+      }
     },
     [dataInPage.length, table, tableData]
   );
 
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
-    toast.success('Delete success!');
-
-    setTableData(deleteRows);
-
-    table.onUpdatePageDeleteRows({
-      totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: dataFiltered.length,
-    });
+const handleDeleteRows = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:8082/api/customers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: table.selected }),
+      });
+      if (!response.ok) throw new Error('Failed to delete');
+      const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
+      toast.success('Delete success!');
+      setTableData(deleteRows);
+      table.onUpdatePageDeleteRows({
+        totalRowsInPage: dataInPage.length,
+        totalRowsFiltered: dataFiltered.length,
+      });
+    } catch (error) {
+      toast.error('Delete failed!');
+      console.error(error);
+    }
   }, [dataFiltered.length, dataInPage.length, table, tableData]);
 
   const handleEditRow = useCallback(
@@ -144,7 +180,7 @@ export function UserListView() {
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              New user
+              New Customer
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
