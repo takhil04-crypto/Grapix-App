@@ -60,20 +60,20 @@ type Props = {
 
 export function UserNewEditForm({ currentUser }: Props) {
   const router = useRouter();
-
+  console.log('Current User:', currentUser);
   const defaultValues = useMemo(
     () => ({
-      status: currentUser?.status || '',
+      status: currentUser?.status || 'active',
       avatarUrl: currentUser?.avatarUrl || null,
       isVerified: currentUser?.isVerified || true,
       name: currentUser?.name || '',
       email: currentUser?.email || '',
-      phoneNumber: currentUser?.phoneNumber || '',
+      phoneNumber: currentUser?.phone || '',
       country: currentUser?.country || '',
       state: currentUser?.state || '',
       city: currentUser?.city || '',
       address1: currentUser?.address1 || '',
-      zipCode: currentUser?.zipCode || '',
+      zipCode: currentUser?.zip || '',
       address2: currentUser?.address2 || '',
       role: currentUser?.role || '',
     }),
@@ -111,24 +111,25 @@ export function UserNewEditForm({ currentUser }: Props) {
     };
 
     try {
+      const isEdit = Boolean(currentUser?.id);
       const response = await fetch('http://localhost:8082/api/customers', {
-        method: 'POST',
+        method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(isEdit ? payload : { ...payload, id: undefined }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create customer');
+        throw new Error(isEdit ? 'Failed to update customer' : 'Failed to create customer');
       }
 
       reset();
-      toast.success('Customer created successfully!');
+      toast.success(isEdit ? 'Customer updated successfully!' : 'Customer created successfully!');
       router.push(paths.dashboard.user.list);
       // Optionally log response
       const result = await response.json();
       console.info('API response:', result);
     } catch (error) {
-      toast.error('Failed to create customer!');
+      toast.error(currentUser?.id ? 'Failed to update customer!' : 'Failed to create customer!');
       console.error(error);
     }
   });

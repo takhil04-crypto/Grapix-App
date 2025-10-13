@@ -149,10 +149,11 @@ export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
 
             <Field.Text name="state" label="State/region" />
             <Field.Text name="city" label="City" />
-            <Field.Text name="address" label="Address" />
+            <Field.Text name="address1" label="Address Line1" />
+            <Field.Text name="address2" label="Address Line2" />
             <Field.Text name="zipCode" label="Zip/code" />
-            <Field.Text name="company" label="Company" />
-            <Field.Text name="role" label="Role" />
+            {/* <Field.Text name="company" label="Company" />
+            <Field.Text name="role" label="Role" /> */}
           </Box>
         </DialogContent>
 

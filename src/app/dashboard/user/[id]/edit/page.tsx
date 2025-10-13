@@ -11,10 +11,20 @@ type Props = {
   params: { id: string };
 };
 
-export default function Page({ params }: Props) {
+export default async function Page({ params }: Props) {
   const { id } = params;
 
-  const currentUser = _userList.find((user) => user.id === id);
+  let currentUser = null;
+  try {
+    const res = await fetch(`http://localhost:8082/api/customers/${id}`, { cache: 'no-store' });
+    if (res.ok) {
+      currentUser = await res.json();
+    } else {
+      console.error('Failed to fetch user:', res.status);
+    }
+  } catch (error) {
+    console.error('Error fetching user:', error);
+  }
 
   return <UserEditView user={currentUser} />;
 }
@@ -34,8 +44,8 @@ export { dynamic };
  * https://nextjs.org/docs/app/building-your-application/deploying/static-exports
  */
 export async function generateStaticParams() {
-  if (CONFIG.isStaticExport) {
-    return _userList.map((user) => ({ id: user.id }));
-  }
+  // if (CONFIG.isStaticExport) {
+  //   return _userList.map((user) => ({ id: user.id }));
+  // }
   return [];
 }

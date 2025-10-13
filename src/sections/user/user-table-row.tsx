@@ -33,6 +33,7 @@ type Props = {
 };
 
 export function UserTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }: Props) {
+  console.log('row', row);
   const confirm = useBoolean();
 
   const popover = usePopover();

@@ -78,6 +78,7 @@ export function UserListView() {
         const mapped = data.map((item: any) => ({
           id: item.id,
           name: item.name,
+          email: item.email,
           phoneNumber: item.phone,
           address: [item.address1, item.address2].filter(Boolean).join(', '),
           city: item.city,

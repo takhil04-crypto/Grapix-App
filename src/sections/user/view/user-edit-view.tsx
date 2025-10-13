@@ -17,6 +17,7 @@ type Props = {
 };
 
 export function UserEditView({ user: currentUser }: Props) {
+  console.log('Current User in Edit View:', currentUser);
   return (
     <DashboardContent>
       <CustomBreadcrumbs

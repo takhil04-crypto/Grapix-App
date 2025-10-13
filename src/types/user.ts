@@ -90,6 +90,8 @@ export type IUserItem = {
   company: string;
   avatarUrl: string;
   phoneNumber: string;
+  phone: string;
+  zip: string;
   isVerified: boolean;
 };
 
