@@ -8,8 +8,10 @@ import { isValidPhoneNumber } from 'react-phone-number-input/input';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
+import { useRouter } from 'src/routes/hooks';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import { paths } from 'src/routes/paths';
 import MenuItem from '@mui/material/MenuItem';
 import LoadingButton from '@mui/lab/LoadingButton';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -32,15 +34,16 @@ export const UserQuickEditSchema = zod.object({
     .min(1, { message: 'Email is required!' })
     .email({ message: 'Email must be a valid email address!' }),
   phoneNumber: schemaHelper.phoneNumber({ isValidPhoneNumber }),
-  country: schemaHelper.objectOrNull<string | null>({
+  country: schemaHelper.objectOrNull<{ label: string; value: string } | string | null>({
     message: { required_error: 'Country is required!' },
   }),
   state: zod.string().min(1, { message: 'State is required!' }),
   city: zod.string().min(1, { message: 'City is required!' }),
-  address: zod.string().min(1, { message: 'Address is required!' }),
+  address1: zod.string().min(1, { message: 'Address Line 1 is required!' }),
+  address2: zod.string().min(1, { message: 'Address Line 2 is required!' }),
   zipCode: zod.string().min(1, { message: 'Zip code is required!' }),
-  company: zod.string().min(1, { message: 'Company is required!' }),
-  role: zod.string().min(1, { message: 'Role is required!' }),
+  // company: zod.string().min(1, { message: 'Company is required!' }),
+  // role: zod.string().min(1, { message: 'Role is required!' }),
   // Not required
   status: zod.string(),
 });
@@ -54,16 +57,19 @@ type Props = {
 };
 
 export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
+  const router = useRouter();
   const defaultValues = useMemo(
     () => ({
+      id: currentUser?.id || '',
       name: currentUser?.name || '',
       email: currentUser?.email || '',
       phoneNumber: currentUser?.phoneNumber || '',
-      address: currentUser?.address || '',
       country: currentUser?.country || '',
       state: currentUser?.state || '',
       city: currentUser?.city || '',
-      zipCode: currentUser?.zipCode || '',
+      address1: currentUser?.address1 || '',
+      zipCode: currentUser?.zip || '',
+      address2: currentUser?.address2 || '',
       status: currentUser?.status,
       company: currentUser?.company || '',
       role: currentUser?.role || '',
@@ -84,22 +90,44 @@ export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
-    const promise = new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log('Form Data Submitted:', data);
+      const payload = {
+      id: currentUser?.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phoneNumber,
+      country: typeof data.country === 'string'
+        ? data.country
+        : (data.country && 'label' in data.country ? data.country.label : ''),
+      state: data.state,
+      city: data.city,
+      address1: data.address1,
+      address2: data.address2,
+      zip: data.zipCode,
+    };
 
     try {
+      const isEdit = Boolean(currentUser?.id);
+      const response = await fetch('http://localhost:8082/api/customers', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update customer');
+      }
+
       reset();
       onClose();
 
-      toast.promise(promise, {
-        loading: 'Loading...',
-        success: 'Update success!',
-        error: 'Update error!',
-      });
-
-      await promise;
-
-      console.info('DATA', data);
+      toast.success('Customer updated successfully!');
+      router.push(paths.dashboard.user.list);
+      // Optionally log response
+      const result = await response.json();
+      console.info('API response:', result);
     } catch (error) {
+      toast.error('Failed to update customer!');
       console.error(error);
     }
   });

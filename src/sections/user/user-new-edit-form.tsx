@@ -115,7 +115,7 @@ export function UserNewEditForm({ currentUser }: Props) {
       const response = await fetch('http://localhost:8082/api/customers', {
         method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(isEdit ? payload : { ...payload, id: undefined }),
+        body: JSON.stringify(isEdit ? { ...payload, id: currentUser?.id } : { ...payload, id: undefined }),
       });
 
       if (!response.ok) {
