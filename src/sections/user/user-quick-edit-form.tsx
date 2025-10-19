@@ -18,7 +18,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
-import { USER_STATUS_OPTIONS } from 'src/_mock';
+// import { USER_STATUS_OPTIONS } from 'src/_mock';
 
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
@@ -29,19 +29,14 @@ export type UserQuickEditSchemaType = zod.infer<typeof UserQuickEditSchema>;
 
 export const UserQuickEditSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
-  email: zod
-    .string()
-    .min(1, { message: 'Email is required!' })
-    .email({ message: 'Email must be a valid email address!' }),
+  email: zod.string().optional(),
   phoneNumber: schemaHelper.phoneNumber({ isValidPhoneNumber }),
-  country: schemaHelper.objectOrNull<{ label: string; value: string } | string | null>({
-    message: { required_error: 'Country is required!' },
-  }),
-  state: zod.string().min(1, { message: 'State is required!' }),
-  city: zod.string().min(1, { message: 'City is required!' }),
-  address1: zod.string().min(1, { message: 'Address Line 1 is required!' }),
-  address2: zod.string().min(1, { message: 'Address Line 2 is required!' }),
-  zipCode: zod.string().min(1, { message: 'Zip code is required!' }),
+  country: zod.any().nullable(),
+  address1: zod.string().optional(),
+  address2: zod.string().optional(),
+  state: zod.string().optional(),
+  city: zod.string().optional(),
+  zipCode: zod.string().optional(),
   // company: zod.string().min(1, { message: 'Company is required!' }),
   // role: zod.string().min(1, { message: 'Role is required!' }),
   // Not required
@@ -58,6 +53,13 @@ type Props = {
 
 export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
   const router = useRouter();
+  const STATUS_OPTIONS = [
+    { value: 'all', label: 'All' },
+    { value: 'active', label: 'Active' },
+    // { value: 'pending', label: 'Pending' },
+    { value: 'deleted', label: 'Deleted' },
+    // { value: 'rejected', label: 'Rejected' },
+  ];
   const defaultValues = useMemo(
     () => ({
       id: currentUser?.id || '',
@@ -72,7 +74,7 @@ export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
       address2: currentUser?.address2 || '',
       status: currentUser?.status,
       company: currentUser?.company || '',
-      role: currentUser?.role || '',
+      // role: currentUser?.role || '',
     }),
     [currentUser]
   );
@@ -104,6 +106,7 @@ export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
       address1: data.address1,
       address2: data.address2,
       zip: data.zipCode,
+      status: 'active',
     };
 
     try {
@@ -144,9 +147,9 @@ export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
         <DialogTitle>Quick Update</DialogTitle>
 
         <DialogContent>
-          <Alert variant="outlined" severity="info" sx={{ mb: 3 }}>
+          {/* <Alert variant="outlined" severity="info" sx={{ mb: 3 }}>
             Account is waiting for confirmation
-          </Alert>
+          </Alert> */}
 
           <Box
             rowGap={3}
@@ -154,8 +157,8 @@ export function UserQuickEditForm({ currentUser, open, onClose }: Props) {
             display="grid"
             gridTemplateColumns={{ xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)' }}
           >
-            <Field.Select name="status" label="Status">
-              {USER_STATUS_OPTIONS.map((status) => (
+            <Field.Select name="status" label="Status" sx={{ marginTop: 2}}>
+              {STATUS_OPTIONS.map((status) => (
                 <MenuItem key={status.value} value={status.value}>
                   {status.label}
                 </MenuItem>

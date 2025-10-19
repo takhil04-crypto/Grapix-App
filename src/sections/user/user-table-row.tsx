@@ -74,7 +74,7 @@ export function UserTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRo
             color={
               (row.status === 'active' && 'success') ||
               (row.status === 'pending' && 'warning') ||
-              (row.status === 'banned' && 'error') ||
+              (row.status === 'deleted' && 'error') ||
               'default'
             }
           >

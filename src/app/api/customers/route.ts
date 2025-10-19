@@ -5,7 +5,7 @@ import pool from '../../../lib/db';
 export async function GET() {
   try {
     const [rows] = await pool.query(
-      `SELECT id, name, email, phone, country, state, city, address1, address2, zip, created_at, updated_at 
+      `SELECT id, name, email, phone, country, state, city, address1, address2, zip, status, created_at, updated_at 
        FROM customers`
     );
     return NextResponse.json(rows);
@@ -25,15 +25,16 @@ export async function POST(req: NextRequest) {
     city,
     address1,
     address2,
-    zip
+    zip,
+    status
   } = await req.json();
 
   try {
     const [result]: any = await pool.query(
       `INSERT INTO customers 
-       (name, email, phone, country, state, city, address1, address2, zip) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, email, phone, country, state, city, address1, address2, zip]
+       (name, email, phone, country, state, city, address1, address2, zip, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, email, phone, country, state, city, address1, address2, zip, status]
     );
 
     return NextResponse.json({
@@ -46,7 +47,8 @@ export async function POST(req: NextRequest) {
       city,
       address1,
       address2,
-      zip
+      zip,
+      status
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });
@@ -65,15 +67,16 @@ export async function PUT(req: NextRequest) {
     city,
     address1,
     address2,
-    zip
+    zip,
+    status
   } = await req.json();
 
   try {
     await pool.query(
       `UPDATE customers 
-       SET name=?, email=?, phone=?, country=?, state=?, city=?, address1=?, address2=?, zip=?, updated_at=NOW() 
+       SET name=?, email=?, phone=?, country=?, state=?, city=?, address1=?, address2=?, zip=?, status=?, updated_at=NOW() 
        WHERE id=?`,
-      [name, email, phone, country, state, city, address1, address2, zip, id]
+      [name, email, phone, country, state, city, address1, address2, zip, status, id]
     );
 
     return NextResponse.json({
@@ -86,7 +89,8 @@ export async function PUT(req: NextRequest) {
       city,
       address1,
       address2,
-      zip
+      zip,
+      status
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });
@@ -104,7 +108,10 @@ export async function DELETE(req: NextRequest) {
     }
     // Create placeholders for the number of ids
     const placeholders = ids.map(() => '?').join(',');
-    await pool.query(`DELETE FROM customers WHERE id IN (${placeholders})`, ids);
+    await pool.query(
+      `UPDATE customers SET status='deleted', updated_at=NOW() WHERE id IN (${placeholders})`,
+      ids
+    );
     return NextResponse.json({ success: true, deleted: ids.length });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });

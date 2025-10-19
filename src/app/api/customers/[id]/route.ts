@@ -8,7 +8,7 @@ export async function GET(
   const { id } = params;
   try {
     const [rows]: any = await pool.query(
-      `SELECT id, name, email, phone, country, state, city, address1, address2, zip, created_at, updated_at 
+      `SELECT id, name, email, phone, country, state, city, address1, address2, zip, status, created_at, updated_at 
        FROM customers WHERE id = ?`,
       [id]
     );

@@ -49,7 +49,14 @@ import { UserTableFiltersResult } from '../user-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_STATUS_OPTIONS];
+// const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_STATUS_OPTIONS];
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  // { value: 'pending', label: 'Pending' },
+  { value: 'deleted', label: 'Deleted' },
+  // { value: 'rejected', label: 'Rejected' },
+];
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name' },
@@ -82,7 +89,7 @@ export function UserListView() {
           phoneNumber: item.phone,
           address: [item.address1, item.address2].filter(Boolean).join(', '),
           city: item.city,
-          status: 'active',
+          status: item.status,
           // add other fields if needed
         }));
         console.log('mapped',mapped);
@@ -212,11 +219,11 @@ const handleDeleteRows = useCallback(async () => {
                     color={
                       (tab.value === 'active' && 'success') ||
                       (tab.value === 'pending' && 'warning') ||
-                      (tab.value === 'banned' && 'error') ||
+                      (tab.value === 'deleted' && 'error') ||
                       'default'
                     }
                   >
-                    {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
+                    {['active', 'pending', 'deleted', 'rejected'].includes(tab.value)
                       ? tableData.filter((user) => user.status === tab.value).length
                       : tableData.length}
                   </Label>

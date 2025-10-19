@@ -24,30 +24,24 @@ import { fData } from 'src/utils/format-number';
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
+import { stat } from 'fs';
 
 // ----------------------------------------------------------------------
 
 export type NewUserSchemaType = zod.infer<typeof NewUserSchema>;
 
 export const NewUserSchema = zod.object({
-  // avatarUrl: schemaHelper.file({ message: { required_error: 'Avatar is required!' } }),
+  avatarUrl: zod.any().nullable(),
   name: zod.string().min(1, { message: 'Name is required!' }),
-  email: zod
-    .string()
-    .min(1, { message: 'Email is required!' })
-    .email({ message: 'Email must be a valid email address!' }),
+  email: zod.string().optional(),
   phoneNumber: schemaHelper.phoneNumber({ isValidPhoneNumber }),
-  country: schemaHelper.objectOrNull<{ label: string } | string | null>({
-    message: { required_error: 'Country is required!' },
-  }),
-  address1: zod.string().min(1, { message: 'Address Line 1 is required!' }),
-  address2: zod.string().min(1, { message: 'Address Line 2 is required!' }),
-  // company: zod.string().min(1, { message: 'Company is required!' }),
-  state: zod.string().min(1, { message: 'State is required!' }),
-  city: zod.string().min(1, { message: 'City is required!' }),
-  // role: zod.string().min(1, { message: 'Role is required!' }),
-  zipCode: zod.string().min(1, { message: 'Zip code is required!' }),
-  // Not required
+  country: zod.any().nullable(),
+  address1: zod.string().optional(),
+  address2: zod.string().optional(),
+  state: zod.string().optional(),
+  city: zod.string().optional(),
+  zipCode: zod.string().optional(),
+  // role: zod.string().optional(),
   status: zod.string(),
   isVerified: zod.boolean(),
 });
@@ -75,7 +69,7 @@ export function UserNewEditForm({ currentUser }: Props) {
       address1: currentUser?.address1 || '',
       zipCode: currentUser?.zip || '',
       address2: currentUser?.address2 || '',
-      role: currentUser?.role || '',
+      // role: currentUser?.role || '',
     }),
     [currentUser]
   );
@@ -108,6 +102,7 @@ export function UserNewEditForm({ currentUser }: Props) {
       address1: data.address1,
       address2: data.address2,
       zip: data.zipCode,
+      status: 'active',
     };
 
     try {
@@ -143,7 +138,7 @@ export function UserNewEditForm({ currentUser }: Props) {
               <Label
                 color={
                   (values.status === 'active' && 'success') ||
-                  (values.status === 'banned' && 'error') ||
+                  (values.status === 'deleted' && 'error') ||
                   'warning'
                 }
                 sx={{ position: 'absolute', top: 24, right: 24 }}
@@ -186,7 +181,7 @@ export function UserNewEditForm({ currentUser }: Props) {
                         {...field}
                         checked={field.value !== 'active'}
                         onChange={(event) =>
-                          field.onChange(event.target.checked ? 'banned' : 'active')
+                          field.onChange(event.target.checked ? 'deleted' : 'active')
                         }
                       />
                     )}
@@ -195,7 +190,7 @@ export function UserNewEditForm({ currentUser }: Props) {
                 label={
                   <>
                     <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      Banned
+                      Delete
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       Apply disable account
