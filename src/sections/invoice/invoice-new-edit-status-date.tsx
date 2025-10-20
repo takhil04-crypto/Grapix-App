@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import Stack from '@mui/material/Stack';
@@ -8,9 +9,22 @@ import { Field } from 'src/components/hook-form';
 // ----------------------------------------------------------------------
 
 export function InvoiceNewEditStatusDate() {
-  const { watch } = useFormContext();
+  const { setValue,watch } = useFormContext();
 
   const values = watch();
+
+  useEffect(() => {
+    async function fetchNextInvoiceNumber() {
+      try {
+        const res = await fetch('/api/invoices/next-id');
+        const data = await res.json();
+        setValue('invoiceNumber', data.nextInvoiceId);
+      } catch (err) {
+        setValue('invoiceNumber', 'INC-1001');
+      }
+    }
+    fetchNextInvoiceNumber();
+  }, [setValue]);
 
   return (
     <Stack

@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-
+import { useEffect, useState } from 'react';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -18,6 +18,7 @@ import { AddressListDialog } from '../address';
 // ----------------------------------------------------------------------
 
 export function InvoiceNewEditAddress() {
+  console.log('_addressBooks',_addressBooks);
   const {
     watch,
     setValue,
@@ -33,6 +34,26 @@ export function InvoiceNewEditAddress() {
   const from = useBoolean();
 
   const to = useBoolean();
+  const [customers, setCustomers] = useState([]);
+
+    useEffect(() => {
+    async function fetchCustomers() {
+      const res = await fetch('/api/customers');
+      const data = await res.json();
+      // Map to address book format
+      const mapped = data.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        phoneNumber: c.phone,
+        fullAddress: [c.address1, c.address2, c.city, c.state, c.zip]
+          .filter(Boolean)
+          .join(', '),
+      }));
+      setCustomers(mapped);
+    }
+    fetchCustomers();
+  }, []);
 
   return (
     <>
@@ -97,7 +118,7 @@ export function InvoiceNewEditAddress() {
         onClose={from.onFalse}
         selected={(selectedId: string) => invoiceFrom?.id === selectedId}
         onSelect={(address) => setValue('invoiceFrom', address)}
-        list={_addressBooks}
+        list={customers}
         action={
           <Button
             size="small"
@@ -115,7 +136,7 @@ export function InvoiceNewEditAddress() {
         onClose={to.onFalse}
         selected={(selectedId: string) => invoiceTo?.id === selectedId}
         onSelect={(address) => setValue('invoiceTo', address)}
-        list={_addressBooks}
+        list={customers}
         action={
           <Button
             size="small"

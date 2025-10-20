@@ -86,7 +86,7 @@ export function AddressListDialog({
             <Box sx={{ color: 'primary.main', typography: 'caption' }}>{address.company}</Box>
           )}
 
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'left' }}>
             {address.fullAddress}
           </Typography>
 
