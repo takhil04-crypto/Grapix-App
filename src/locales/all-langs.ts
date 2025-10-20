@@ -31,7 +31,7 @@ export const allLangs = [
     label: 'English',
     countryCode: 'GB',
     adapterLocale: 'en',
-    numberFormat: { code: 'en-US', currency: 'USD' },
+    numberFormat: { code: 'en-US', currency: 'INR' },
     systemValue: {
       components: { ...enUSDate.components, ...enUSDataGrid.components },
     },

@@ -2,8 +2,7 @@
 
 import type { IInvoice, IInvoiceTableFilters } from 'src/types/invoice';
 
-import { useState, useCallback } from 'react';
-
+import { useState, useCallback, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -76,8 +75,34 @@ export function InvoiceListView() {
   const table = useTable({ defaultOrderBy: 'createDate' });
 
   const confirm = useBoolean();
-
+  console.log('_invoices',_invoices);
   const [tableData, setTableData] = useState<IInvoice[]>(_invoices);
+
+  useEffect(() => {
+      fetch('http://localhost:8082/api/invoices')
+        .then((res) => res.json())
+        .then((data) => {
+          console.log('data',data);
+          // Map API data to match IUserItem and table columns
+          const mapped = data.map((item: any) => ({
+            id: item.id,
+            invoiceNumber: item.invoice_id,
+            shipping: item.shipping,
+            taxes: item.taxes,
+            totalAmount: item.total,
+            invoiceTo: item.customer,
+            items: item.items,
+            status: item.status,
+            createDate: item.created_at,
+            // add other fields if needed
+          }));
+          console.log('mapped',mapped);
+          setTableData(mapped);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch invoices:', err);
+        });
+    }, []);
 
   const filters = useSetState<IInvoiceTableFilters>({
     name: '',
