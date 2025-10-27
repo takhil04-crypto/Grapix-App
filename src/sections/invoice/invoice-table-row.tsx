@@ -60,7 +60,7 @@ export function InvoiceTableRow({
 
         <TableCell>
           <Stack spacing={2} direction="row" alignItems="center">
-            <Avatar alt={row.invoiceTo.name}>{row.invoiceTo.name.charAt(0).toUpperCase()}</Avatar>
+            <Avatar alt={row.invoiceTo.name}>{row.invoiceTo?.name?.charAt(0).toUpperCase()}</Avatar>
 
             <ListItemText
               disableTypography

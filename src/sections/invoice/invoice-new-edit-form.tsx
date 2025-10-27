@@ -62,6 +62,27 @@ export const NewInvoiceSchema = zod
 
 // ----------------------------------------------------------------------
 
+const mapFormToApiPayload = (data: NewInvoiceSchemaType) => ({
+  invoice_id: data.invoiceNumber,
+  status: data.status,
+  invoice_to: data.invoiceTo?.name || '',
+  invoice_details: {
+    items: data.items.map((item) => ({
+      title: item.title,
+      description: item.description,
+      service: item.service,
+      quantity: item.quantity,
+      price: item.price,
+      total: item.total,
+    })),
+  },
+  sub_total: data.items.reduce((acc, item) => acc + item.quantity * item.price, 0),
+  shipping: data.shipping,
+  discount: data.discount,
+  taxes: data.taxes,
+  total: data.totalAmount,
+});
+
 type Props = {
   currentInvoice?: IInvoice;
 };
@@ -75,7 +96,7 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
 
   const defaultValues = useMemo(
     () => ({
-      invoiceNumber: currentInvoice?.invoiceNumber || 'INV-1990',
+      invoiceNumber: currentInvoice?.invoiceNumber || 'INV-1',
       createDate: currentInvoice?.createDate || today(),
       dueDate: currentInvoice?.dueDate || null,
       taxes: currentInvoice?.taxes || 0,
@@ -113,13 +134,17 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
 
   const handleSaveAsDraft = handleSubmit(async (data) => {
     loadingSave.onTrue();
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const payload = mapFormToApiPayload({ ...data, status: 'draft' });
+      await fetch('http://localhost:8082/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       reset();
       loadingSave.onFalse();
       router.push(paths.dashboard.invoice.root);
-      console.info('DATA', JSON.stringify(data, null, 2));
+      console.info('DATA', JSON.stringify(payload, null, 2));
     } catch (error) {
       console.error(error);
       loadingSave.onFalse();
@@ -128,13 +153,17 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
 
   const handleCreateAndSend = handleSubmit(async (data) => {
     loadingSend.onTrue();
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const payload = mapFormToApiPayload({ ...data, status: 'paid' });
+      await fetch('http://localhost:8082/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       reset();
       loadingSend.onFalse();
       router.push(paths.dashboard.invoice.root);
-      console.info('DATA', JSON.stringify(data, null, 2));
+      console.info('DATA', JSON.stringify(payload, null, 2));
     } catch (error) {
       console.error(error);
       loadingSend.onFalse();

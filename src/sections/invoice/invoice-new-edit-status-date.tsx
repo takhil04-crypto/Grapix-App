@@ -20,7 +20,7 @@ export function InvoiceNewEditStatusDate() {
         const data = await res.json();
         setValue('invoiceNumber', data.nextInvoiceId);
       } catch (err) {
-        setValue('invoiceNumber', 'INC-1001');
+        setValue('invoiceNumber', 'INV-1001');
       }
     }
     fetchNextInvoiceNumber();
