@@ -75,8 +75,7 @@ export function InvoiceListView() {
   const table = useTable({ defaultOrderBy: 'createDate' });
 
   const confirm = useBoolean();
-  console.log('_invoices',_invoices);
-  const [tableData, setTableData] = useState<IInvoice[]>(_invoices);
+  const [tableData, setTableData] = useState<IInvoice[]>([]);
 
   useEffect(() => {
       fetch('http://localhost:8082/api/invoices')
