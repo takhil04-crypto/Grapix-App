@@ -76,26 +76,25 @@ export function InvoiceListView() {
 
   const confirm = useBoolean();
   const [tableData, setTableData] = useState<IInvoice[]>([]);
-
+  console.log('_invoices',_invoices);
   useEffect(() => {
       fetch('http://localhost:8082/api/invoices')
         .then((res) => res.json())
         .then((data) => {
-          console.log('data',data);
           // Map API data to match IUserItem and table columns
-          const mapped = data.map((item: any) => ({
+            const mapped = data.map((item: any) => ({
             id: item.id,
             invoiceNumber: item.invoice_id,
-            shipping: item.shipping,
-            taxes: item.taxes,
-            totalAmount: item.total,
-            invoiceTo: item.customer,
+            shipping: parseFloat(item.shipping),
+            taxes: parseFloat(item.taxes),
+            totalAmount: parseFloat(item.total),
+            invoiceTo: item.invoice_to,
             items: item.items,
             status: item.status,
             createDate: item.created_at,
             // add other fields if needed
-          }));
-          console.log('mapped',mapped);
+            }));
+            console.log('mapped', mapped);
           setTableData(mapped);
         })
         .catch((err) => {
@@ -176,29 +175,45 @@ export function InvoiceListView() {
   ] as const;
 
   const handleDeleteRow = useCallback(
-    (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
-      toast.success('Delete success!');
-
-      setTableData(deleteRow);
-
-      table.onUpdatePageDeleteRow(dataInPage.length);
+    async (id: string) => {
+      try {
+        const response = await fetch('http://localhost:8082/api/invoices', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: [id] }),
+        });
+        if (!response.ok) throw new Error('Failed to delete');
+        const deleteRow = tableData.filter((row) => row.id !== id);
+        toast.success('Delete success!');
+        setTableData(deleteRow);
+        table.onUpdatePageDeleteRow(dataInPage.length);
+      } catch (error) {
+        toast.error('Delete failed!');
+        console.error(error);
+      }
     },
     [dataInPage.length, table, tableData]
   );
 
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
-    toast.success('Delete success!');
-
-    setTableData(deleteRows);
-
-    table.onUpdatePageDeleteRows({
-      totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: dataFiltered.length,
-    });
+  const handleDeleteRows = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:8082/api/invoices', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: table.selected }),
+      });
+      if (!response.ok) throw new Error('Failed to delete');
+      const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
+      toast.success('Delete success!');
+      setTableData(deleteRows);
+      table.onUpdatePageDeleteRows({
+        totalRowsInPage: dataInPage.length,
+        totalRowsFiltered: dataFiltered.length,
+      });
+    } catch (error) {
+      toast.error('Delete failed!');
+      console.error(error);
+    }
   }, [dataFiltered.length, dataInPage.length, table, tableData]);
 
   const handleEditRow = useCallback(

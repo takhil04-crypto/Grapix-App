@@ -65,7 +65,10 @@ export const NewInvoiceSchema = zod
 const mapFormToApiPayload = (data: NewInvoiceSchemaType) => ({
   invoice_id: data.invoiceNumber,
   status: data.status,
-  invoice_to: data.invoiceTo?.name || '',
+  invoice_to: {
+    name: data.invoiceTo?.name || '',
+    fullAddress: data.invoiceTo?.fullAddress || '',
+  },
   invoice_details: {
     items: data.items.map((item) => ({
       title: item.title,
@@ -135,16 +138,21 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
   const handleSaveAsDraft = handleSubmit(async (data) => {
     loadingSave.onTrue();
     try {
-      const payload = mapFormToApiPayload({ ...data, status: 'draft' });
-      await fetch('http://localhost:8082/api/invoices', {
-        method: 'POST',
+      const isEdit = !!currentInvoice;
+      const payload = {
+        ...(isEdit ? { id: currentInvoice.id } : {}),
+        ...mapFormToApiPayload({ ...data, status: 'draft' }),
+      };
+      const url = 'http://localhost:8082/api/invoices';
+      const method = isEdit ? 'PUT' : 'POST';
+      await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       reset();
       loadingSave.onFalse();
       router.push(paths.dashboard.invoice.root);
-      console.info('DATA', JSON.stringify(payload, null, 2));
     } catch (error) {
       console.error(error);
       loadingSave.onFalse();
@@ -154,16 +162,21 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
   const handleCreateAndSend = handleSubmit(async (data) => {
     loadingSend.onTrue();
     try {
-      const payload = mapFormToApiPayload({ ...data, status: 'paid' });
-      await fetch('http://localhost:8082/api/invoices', {
-        method: 'POST',
+      const isEdit = !!currentInvoice;
+      const payload = {
+        ...(isEdit ? { id: currentInvoice.id } : {}),
+        ...mapFormToApiPayload({ ...data, status: 'paid' }),
+      };
+      const url = 'http://localhost:8082/api/invoices';
+      const method = isEdit ? 'PUT' : 'POST';
+      await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       reset();
       loadingSend.onFalse();
       router.push(paths.dashboard.invoice.root);
-      console.info('DATA', JSON.stringify(payload, null, 2));
     } catch (error) {
       console.error(error);
       loadingSend.onFalse();
@@ -175,7 +188,7 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
       <Card>
         <InvoiceNewEditAddress />
 
-        <InvoiceNewEditStatusDate />
+        <InvoiceNewEditStatusDate currentInvoice={currentInvoice} />
 
         <InvoiceNewEditDetails />
       </Card>

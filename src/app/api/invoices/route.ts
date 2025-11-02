@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       [
         invoice_id,
         status,
-        invoice_to,
+        JSON.stringify(invoice_to),
         JSON.stringify(invoice_details),
         sub_total,
         shipping,
@@ -123,7 +123,7 @@ export async function PUT(req: NextRequest) {
       [
         invoice_id,
         status,
-        invoice_to,
+        JSON.stringify(invoice_to),
         JSON.stringify(invoice_details),
         sub_total,
         shipping,

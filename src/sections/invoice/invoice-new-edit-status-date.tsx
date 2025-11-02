@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import type { IInvoice } from 'src/types/invoice';
 import { useFormContext } from 'react-hook-form';
-
+import { useParams } from 'react-router-dom';
 import Stack from '@mui/material/Stack';
 import MenuItem from '@mui/material/MenuItem';
 
@@ -8,23 +9,27 @@ import { Field } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
-export function InvoiceNewEditStatusDate() {
-  const { setValue,watch } = useFormContext();
+type Props = {
+  currentInvoice?: IInvoice;
+};
 
+export function InvoiceNewEditStatusDate({ currentInvoice }: Props) {
+  const { setValue, watch } = useFormContext();
   const values = watch();
-
   useEffect(() => {
     async function fetchNextInvoiceNumber() {
-      try {
-        const res = await fetch('/api/invoices/next-id');
-        const data = await res.json();
-        setValue('invoiceNumber', data.nextInvoiceId);
-      } catch (err) {
-        setValue('invoiceNumber', 'INV-1001');
+        try {
+          const res = await fetch('/api/invoices/next-id');
+          const data = await res.json();
+          setValue('invoiceNumber', data.nextInvoiceId);
+        } catch (err) {
+          setValue('invoiceNumber', 'INV-1001');
+        }
       }
+    if (!currentInvoice?.id) {
+      fetchNextInvoiceNumber();
     }
-    fetchNextInvoiceNumber();
-  }, [setValue]);
+  }, [setValue, currentInvoice]);
 
   return (
     <Stack
