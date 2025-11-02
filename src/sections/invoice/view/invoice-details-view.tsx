@@ -17,6 +17,7 @@ type Props = {
 };
 
 export function InvoiceDetailsView({ invoice }: Props) {
+  console.log('InvoiceDetailsView', invoice);
   return (
     <DashboardContent>
       <CustomBreadcrumbs
