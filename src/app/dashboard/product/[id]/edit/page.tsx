@@ -1,8 +1,9 @@
 import axios, { endpoints } from 'src/utils/axios';
-
+import type { IProductItem } from 'src/types/product';
 import { CONFIG } from 'src/config-global';
 
 import { ProductEditView } from 'src/sections/product/view';
+import { PRODUCT_CATEGORY_GROUP_OPTIONS } from 'src/_mock';
 
 // ----------------------------------------------------------------------
 
@@ -13,11 +14,56 @@ type Props = {
 };
 
 export default async function Page({ params }: Props) {
-  const { id } = params;
+    const { id } = params;
+    console.log('Product ID from params:', id);
+    let currentProduct: IProductItem | undefined = undefined;
+    try {
+      const res = await fetch(`http://localhost:8082/api/products/${id}`, { cache: 'no-store' });
+      console.log('Fetch response for product:', res);
+      if (res.ok) {
+        const product = await res.json();
+        currentProduct = {
+          name: product.product_name || '',
+          description: product.content || '',
+          subDescription: product.sub_description || '',
+          images: product.images || [],
+          code: product.code || '',
+          sku: product.sku || '',
+          price: product.pricing?.USD || 0,
+          quantity: product.quantity || 0,
+          priceSale: product.priceSale || 0,
+          tags: product.tags || [],
+          taxes: product.taxes || 0,
+          gender: product.gender || [],
+          category: product.category || PRODUCT_CATEGORY_GROUP_OPTIONS[0].classify[1],
+          colors: product.properties?.color ? [product.properties.color] : [],
+          sizes: product.properties?.storage ? [product.properties.storage] : [],
+          newLabel: product.newLabel || { enabled: false, content: '' },
+          saleLabel: product.saleLabel || { enabled: false, content: '' },
+          id: product.id,
+          publish: product.publish_status,
+          createdAt: product.created_at,
+          // updatedAt: product.updated_at,
+          coverUrl: product.coverUrl || (product.images && product.images[0]) || '',
+          available: product.available ?? true,
+          totalSold: product.totalSold ?? 0,
+          totalRatings: product.totalRatings ?? 0,
+          inventoryType: product.inventoryType ?? 'in_stock',
+          //sizesOptions: product.sizesOptions ?? [],
+          //colorsOptions: product.colorsOptions ?? [],
+         // categoryGroup: product.categoryGroup ?? '',
+          totalReviews: product.totalReviews ?? 0,
+          reviews: product.reviews ?? [],
+          ratings: product.ratings ?? [],
+        };
+      } else {
+        console.error('Failed to fetch product:', res.status);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    }
 
-  const { product } = await getProduct(id);
-
-  return <ProductEditView product={product} />;
+    return <ProductEditView product={currentProduct} />;
 }
 
 // ----------------------------------------------------------------------

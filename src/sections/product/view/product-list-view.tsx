@@ -77,39 +77,82 @@ export function ProductListView() {
   const [tableData, setTableData] = useState<IProductItem[]>([]);
 
   const [selectedRowIds, setSelectedRowIds] = useState<GridRowSelectionModel>([]);
-
+  const [loading, setLoading] = useState(false);
   const [filterButtonEl, setFilterButtonEl] = useState<HTMLButtonElement | null>(null);
 
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>(HIDE_COLUMNS);
 
   useEffect(() => {
-    if (products.length) {
-      setTableData(products);
-    }
-  }, [products]);
+    fetch('http://localhost:8082/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        // Map API data to match IProductItem structure
+        const mapped = data.map((item: any) => ({
+          id: item.id,
+          name: item.product_name,
+          description: item.sub_description,
+          images: item.images,
+          properties: item.properties,
+          category: item.properties?.category || '',
+          inventoryType: item.properties?.quantity > 0 ? 'in_stock' : 'out_of_stock',
+          price: item.pricing?.INR || 0,
+          publish: item.publish_status,
+          createdAt: item.created_at,
+          // Add other fields as needed
+        }));
+        setTableData(mapped);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch products:', err);
+      });
+  }, []);
 
   const canReset = filters.state.publish.length > 0 || filters.state.stock.length > 0;
 
   const dataFiltered = applyFilter({ inputData: tableData, filters: filters.state });
 
   const handleDeleteRow = useCallback(
-    (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
-      toast.success('Delete success!');
-
-      setTableData(deleteRow);
+    async (id: string) => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:8082/api/products', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: [id] }),
+        });
+        if (!response.ok) throw new Error('Failed to delete');
+        const deleteRow = tableData.filter((row) => row.id !== id);
+        toast.success('Delete success!');
+        setTableData(deleteRow);
+      } catch (error) {
+        toast.error('Delete failed!');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     },
     [tableData]
   );
 
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !selectedRowIds.includes(row.id));
-
-    toast.success('Delete success!');
-
-    setTableData(deleteRows);
+  const handleDeleteRows = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:8082/api/products', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedRowIds }),
+      });
+      if (!response.ok) throw new Error('Failed to delete');
+      const deleteRows = tableData.filter((row) => !selectedRowIds.includes(row.id));
+      toast.success('Delete success!');
+      setTableData(deleteRows);
+    } catch (error) {
+      toast.error('Delete failed!');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedRowIds, tableData]);
 
   const handleEditRow = useCallback(
@@ -260,7 +303,7 @@ export function ProductListView() {
             disableRowSelectionOnClick
             rows={dataFiltered}
             columns={columns}
-            loading={productsLoading}
+            loading={loading}
             getRowHeight={() => 'auto'}
             pageSizeOptions={[5, 10, 25]}
             initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}

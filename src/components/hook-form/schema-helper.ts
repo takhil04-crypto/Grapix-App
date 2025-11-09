@@ -65,7 +65,8 @@ export const schemaHelper = {
    * defaultValue === '' | <p></p>
    */
   editor: (props?: InputProps) =>
-    zod.string().min(8, { message: props?.message?.required_error ?? 'Editor is required!' }),
+    zod.string(),
+  //.min(8, { message: props?.message?.required_error ?? 'Editor is required!' }),
   /**
    * Object
    * defaultValue === null
@@ -105,21 +106,22 @@ export const schemaHelper = {
    * defaultValue === []
    */
   files: (props?: InputProps) =>
-    zod.array(zod.custom<File | string>()).transform((data, ctx) => {
-      const minFiles = props?.minFiles ?? 2;
+    zod.array(zod.custom<File | string>()),
+  // .transform((data, ctx) => {
+  //     const minFiles = props?.minFiles ?? 2;
 
-      if (!data.length) {
-        ctx.addIssue({
-          code: zod.ZodIssueCode.custom,
-          message: props?.message?.required_error ?? 'Files is required!',
-        });
-      } else if (data.length < minFiles) {
-        ctx.addIssue({
-          code: zod.ZodIssueCode.custom,
-          message: `Must have at least ${minFiles} items!`,
-        });
-      }
+  //     if (!data.length) {
+  //       ctx.addIssue({
+  //         code: zod.ZodIssueCode.custom,
+  //         message: props?.message?.required_error ?? 'Files is required!',
+  //       });
+  //     } else if (data.length < minFiles) {
+  //       ctx.addIssue({
+  //         code: zod.ZodIssueCode.custom,
+  //         message: `Must have at least ${minFiles} items!`,
+  //       });
+  //     }
 
-      return data;
-    }),
+  //     return data;
+  //   }),
 };

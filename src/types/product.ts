@@ -73,4 +73,5 @@ export type IProductItem = {
     enabled: boolean;
     content: string;
   };
+  publish_status?: 'published' | 'draft';
 };

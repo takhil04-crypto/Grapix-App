@@ -14,7 +14,7 @@ type Props = {
 
 export default async function Page({ params }: Props) {
   const { id } = params;
-
+ console.log('Product ID from params:1111', id);
   const { product } = await getProduct(id);
 
   return <ProductDetailsView product={product} />;

@@ -37,16 +37,16 @@ export type NewProductSchemaType = zod.infer<typeof NewProductSchema>;
 
 export const NewProductSchema = zod.object({
   name: zod.string().min(1, { message: 'Name is required!' }),
-  description: schemaHelper.editor({ message: { required_error: 'Description is required!' } }),
-  images: schemaHelper.files({ message: { required_error: 'Images is required!' } }),
-  code: zod.string().min(1, { message: 'Product code is required!' }),
-  sku: zod.string().min(1, { message: 'Product sku is required!' }),
-  quantity: zod.number().min(1, { message: 'Quantity is required!' }),
-  colors: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  sizes: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  tags: zod.string().array().min(2, { message: 'Must have at least 2 items!' }),
-  gender: zod.string().array().nonempty({ message: 'Choose at least one option!' }),
-  price: zod.number().min(1, { message: 'Price should not be $0.00' }),
+  description: schemaHelper.editor({}).optional(),
+  images: schemaHelper.files({}).optional(),
+  code: zod.string(),
+  sku: zod.string(),
+  quantity: zod.number(),
+  colors: zod.string().array(),
+  sizes: zod.string().array(),
+  tags: zod.string().array(),
+  gender: zod.string().array(),
+  price: zod.number(),
   // Not required
   category: zod.string(),
   priceSale: zod.number(),
@@ -54,6 +54,7 @@ export const NewProductSchema = zod.object({
   taxes: zod.number(),
   saleLabel: zod.object({ enabled: zod.boolean(), content: zod.string() }),
   newLabel: zod.object({ enabled: zod.boolean(), content: zod.string() }),
+  publish_status: zod.boolean().default(true),
 });
 
 // ----------------------------------------------------------------------
@@ -87,6 +88,14 @@ export function ProductNewEditForm({ currentProduct }: Props) {
       sizes: currentProduct?.sizes || [],
       newLabel: currentProduct?.newLabel || { enabled: false, content: '' },
       saleLabel: currentProduct?.saleLabel || { enabled: false, content: '' },
+      publish_status:
+        typeof currentProduct?.publish_status === 'boolean'
+          ? currentProduct.publish_status
+          : currentProduct?.publish_status === 'published'
+          ? true
+          : currentProduct?.publish_status === 'draft'
+          ? false
+          : true,
     }),
     [currentProduct]
   );
@@ -121,13 +130,49 @@ export function ProductNewEditForm({ currentProduct }: Props) {
   }, [currentProduct?.taxes, includeTaxes, setValue]);
 
   const onSubmit = handleSubmit(async (data) => {
+    // Map form data to API payload
+    const payload = {
+      id: currentProduct?.id,
+      product_name: data.name,
+      sub_description: data.subDescription,
+      content: data.description,
+      images: Array.isArray(data.images)
+        ? data.images.map((img) => typeof img === 'string' ? img : img.name)
+        : [],
+      properties: {
+        color: data.colors[0] || '',
+        storage: data.sizes[0] || '',
+        category: data.category,
+        sku: data.sku,
+        code: data.code,
+        quantity: data.quantity,
+      },
+      pricing: {
+        USD: data.price,
+        INR: Math.round(data.price * 83.0), // Example conversion, adjust as needed
+      },
+      publish_status: data.publish_status ? 'published' : 'draft',
+    };
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const isEdit = Boolean(currentProduct?.id);
+      const response = await fetch('http://localhost:8082/api/products', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(isEdit ? payload : { ...payload, id: undefined }),
+      });
+
+      if (!response.ok) {
+        throw new Error(isEdit ? 'Failed to update product' : 'Failed to create product');
+      }
+
       reset();
-      toast.success(currentProduct ? 'Update success!' : 'Create success!');
+      toast.success(isEdit ? 'Product updated successfully!' : 'Product created successfully!');
       router.push(paths.dashboard.product.root);
-      console.info('DATA', data);
+      const result = await response.json();
+      console.info('API response:', result);
     } catch (error) {
+      toast.error(currentProduct?.id ? 'Failed to update product!' : 'Failed to create product!');
       console.error(error);
     }
   });
@@ -362,7 +407,13 @@ export function ProductNewEditForm({ currentProduct }: Props) {
   const renderActions = (
     <Stack spacing={3} direction="row" alignItems="center" flexWrap="wrap">
       <FormControlLabel
-        control={<Switch defaultChecked inputProps={{ id: 'publish-switch' }} />}
+        control={
+          <Field.Switch
+            name="publish_status"
+            label={null}
+            id="publish-switch"
+          />
+        }
         label="Publish"
         sx={{ pl: 3, flexGrow: 1 }}
       />
