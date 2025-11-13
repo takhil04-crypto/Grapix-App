@@ -2,7 +2,7 @@ import type { IInvoice } from 'src/types/invoice';
 
 import { useMemo } from 'react';
 import { Page, View, Text, Font, Image, Document, StyleSheet } from '@react-pdf/renderer';
-
+import { Svg, Path } from '@react-pdf/renderer';
 import { fDate } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
 
@@ -109,9 +109,17 @@ export function InvoicePDF({ invoice, currentStatus }: Props) {
     <View style={[styles.container, styles.footer]} fixed>
       <View style={{ width: '75%' }}>
         <Text style={styles.subtitle2}>NOTES</Text>
-        <Text>
-          We appreciate your business. Should you need us to add VAT or extra notes let us know!
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+          <Text style={{ marginRight: 4 }}>
+            With sincere appreciation for your trust, we remain honored to serve you.
+          </Text>
+          <Svg width="18" height="18" viewBox="0 0 32 32">
+            <Path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+              fill="#d32f2f"
+            />
+          </Svg>
+        </View>
       </View>
       <View style={{ width: '25%', textAlign: 'right' }}>
         <Text style={styles.subtitle2}>Have a question?</Text>
