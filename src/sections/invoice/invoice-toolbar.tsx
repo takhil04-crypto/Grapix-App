@@ -41,12 +41,13 @@ export function InvoiceToolbar({ invoice, currentStatus, statusOptions, onChange
   const handleEdit = useCallback(() => {
     router.push(paths.dashboard.invoice.edit(`${invoice?.id}`));
   }, [invoice?.id, router]);
-
+  console.log('invoice,', invoice);
+  console.log('currentStatus,', currentStatus);
   const renderDownload = (
     <NoSsr>
       <PDFDownloadLink
         document={
-          invoice ? <InvoicePDF invoice={invoice} currentStatus={currentStatus} /> : <span />
+          invoice && currentStatus ? <InvoicePDF invoice={invoice} currentStatus={currentStatus} /> : <span />
         }
         fileName={invoice?.invoiceNumber}
         style={{ textDecoration: 'none' }}
@@ -136,7 +137,9 @@ export function InvoiceToolbar({ invoice, currentStatus, statusOptions, onChange
 
           <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
             <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-              {invoice && <InvoicePDF invoice={invoice} currentStatus={currentStatus} />}
+              {invoice && currentStatus ? (
+                <InvoicePDF invoice={invoice} currentStatus={currentStatus} />
+              ) : undefined}
             </PDFViewer>
           </Box>
         </Box>
