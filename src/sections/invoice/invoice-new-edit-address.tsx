@@ -75,16 +75,18 @@ export function InvoiceNewEditAddress() {
             <Typography variant="h6" sx={{ color: 'text.disabled', flexGrow: 1 }}>
               From:
             </Typography>
-
+{/* 
             <IconButton onClick={from.onTrue}>
               <Iconify icon="solar:pen-bold" />
-            </IconButton>
+            </IconButton> */}
           </Stack>
 
           <Stack spacing={1}>
-            <Typography variant="subtitle2">{invoiceFrom.name}</Typography>
-            <Typography variant="body2">{invoiceFrom.fullAddress}</Typography>
-            <Typography variant="body2"> {invoiceFrom.phoneNumber}</Typography>
+            <Typography variant="subtitle2">Grapix</Typography>
+            <Typography variant="body2">1st Floor, Kurup's Arcade,</Typography>
+            <Typography variant="body2">Kalarivathukkal Jn., K.S. Puram,</Typography>
+            <Typography variant="body2">Phone: 9633 138 738</Typography>
+            <Typography variant="body2">Email: grapixxdesign@gmail.com</Typography>
           </Stack>
         </Stack>
 

@@ -114,7 +114,7 @@ export function InvoiceDetails({ invoice }: Props) {
         <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
           Have a question?
         </Typography>
-        <Typography variant="body2">support@minimals.cc</Typography>
+        <Typography variant="body2">grapixxdesign@gmail.com</Typography>
       </Box>
     </Box>
   );
@@ -184,8 +184,8 @@ export function InvoiceDetails({ invoice }: Props) {
           <Box
             component="img"
             alt="logo"
-            src="/logo/logo-single.svg"
-            sx={{ width: 48, height: 48 }}
+            src="/logo/logo-full.png"
+            sx={{ width: '150px', height: 'auto', maxHeight: 48 }}
           />
 
           <Stack spacing={1} alignItems={{ xs: 'flex-start', md: 'flex-end' }}>
@@ -208,12 +208,11 @@ export function InvoiceDetails({ invoice }: Props) {
             <Typography variant="subtitle2" sx={{ mb: 1 }}>
               Invoice from
             </Typography>
-            {invoice?.invoiceFrom.name}
-            <br />
-            {invoice?.invoiceFrom.fullAddress}
-            <br />
-            Phone: {invoice?.invoiceFrom.phoneNumber}
-            <br />
+             <Typography variant="subtitle2">Grapix</Typography>
+             <Typography variant="body2">1st Floor, Kurup's Arcade,</Typography>
+             <Typography variant="body2">Kalarivathukkal Jn., K.S. Puram,</Typography>
+             <Typography variant="body2">Phone: 9633 138 738</Typography>
+             <Typography variant="body2">Email: grapixxdesign@gmail.com</Typography>
           </Stack>
 
           <Stack sx={{ typography: 'body2' }}>

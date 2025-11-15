@@ -96,7 +96,7 @@ export function InvoicePDF({ invoice, currentStatus }: Props) {
 
   const renderHeader = (
     <View style={[styles.container, styles.mb40]}>
-      <Image source="/logo/logo-single.png" style={{ width: 48, height: 48 }} />
+      <Image source="/logo/logo-full.png" style={{ width: 100, height: 30 }} />
 
       <View style={{ alignItems: 'flex-end', flexDirection: 'column' }}>
         <Text style={[styles.h3, { textTransform: 'capitalize' }]}>{currentStatus}</Text>
@@ -123,7 +123,7 @@ export function InvoicePDF({ invoice, currentStatus }: Props) {
       </View>
       <View style={{ width: '25%', textAlign: 'right' }}>
         <Text style={styles.subtitle2}>Have a question?</Text>
-        <Text>support@abcapp.com</Text>
+        <Text>grapixxdesign@gmail.com</Text>
       </View>
     </View>
   );
@@ -132,9 +132,11 @@ export function InvoicePDF({ invoice, currentStatus }: Props) {
     <View style={[styles.container, styles.mb40]}>
       <View style={{ width: '50%' }}>
         <Text style={[styles.subtitle2, styles.mb4]}>Invoice from</Text>
-        <Text style={styles.body2}>{invoiceFrom.name}</Text>
-        <Text style={styles.body2}>{invoiceFrom.fullAddress}</Text>
-        <Text style={styles.body2}>{invoiceFrom.phoneNumber}</Text>
+         <Text style={styles.subtitle2}>Grapix</Text>
+         <Text style={styles.body2}>1st Floor, Kurup's Arcade,</Text>
+         <Text style={styles.body2}>Kalarivathukkal Jn., K.S. Puram,</Text>
+         <Text style={styles.body2}>Phone: 9633 138 738</Text>
+         <Text style={styles.body2}>Email: grapixxdesign@gmail.com</Text>
       </View>
 
       <View style={{ width: '50%' }}>
