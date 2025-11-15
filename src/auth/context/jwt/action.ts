@@ -26,7 +26,7 @@ export const signInWithPassword = async ({ email, password }: SignInParams): Pro
   try {
     const params = { email, password };
 
-    const res = await axios.post(endpoints.auth.signIn, params);
+    const res = await axios.post('https://api-dev-minimal-v610.pages.dev/api/auth/sign-in', params);
 
     const { accessToken } = res.data;
 
