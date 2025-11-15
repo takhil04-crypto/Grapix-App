@@ -37,7 +37,7 @@ export function AuthProvider({ children }: Props) {
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
 
-        const res = await axios.get(endpoints.auth.me);
+        const res = await axios.get('https://api-dev-minimal-v610.pages.dev/api/auth/me');
 
         const { user } = res.data;
 
