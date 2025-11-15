@@ -142,8 +142,11 @@ export function InvoicePDF({ invoice, currentStatus }: Props) {
       <View style={{ width: '50%' }}>
         <Text style={[styles.subtitle2, styles.mb4]}>Invoice to</Text>
         <Text style={styles.body2}>{invoiceTo.name}</Text>
-        <Text style={styles.body2}>{invoiceTo.fullAddress}</Text>
-        <Text style={styles.body2}>{invoiceTo.phoneNumber}</Text>
+        <Text style={styles.body2}>{invoiceTo.address1},</Text>
+        <Text style={styles.body2}>{invoiceTo.address2}</Text>
+        {invoiceTo.phoneNumber && (
+          <Text style={styles.body2}>Phone: {invoiceTo.phoneNumber}</Text>
+        )}
       </View>
     </View>
   );

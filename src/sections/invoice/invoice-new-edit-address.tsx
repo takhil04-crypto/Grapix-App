@@ -47,7 +47,10 @@ export function InvoiceNewEditAddress() {
         name: c.name,
         email: c.email,
         phoneNumber: c.phone,
-        fullAddress: [c.address1, c.address2, c.city, c.state, c.zip]
+        address1: [c.address1, c.address2]
+          .filter(Boolean)
+          .join(', '),
+        address2: [c.city, c.state, c.zip]
           .filter(Boolean)
           .join(', '),
       }));
@@ -104,8 +107,11 @@ export function InvoiceNewEditAddress() {
           {invoiceTo ? (
             <Stack spacing={1}>
               <Typography variant="subtitle2">{invoiceTo.name}</Typography>
-              <Typography variant="body2">{invoiceTo.fullAddress}</Typography>
-              <Typography variant="body2"> {invoiceTo.phoneNumber}</Typography>
+              <Typography variant="body2">{invoiceTo.address1},</Typography>
+              <Typography variant="body2">{invoiceTo.address2}</Typography>
+              {invoiceTo.phoneNumber && (
+                <Typography variant="body2">Phone: {invoiceTo.phoneNumber}</Typography>
+              )}
             </Stack>
           ) : (
             <Typography typography="caption" sx={{ color: 'error.main' }}>

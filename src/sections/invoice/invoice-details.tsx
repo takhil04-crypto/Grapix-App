@@ -221,9 +221,11 @@ export function InvoiceDetails({ invoice }: Props) {
             </Typography>
             {invoice?.invoiceTo.name}
             <br />
-            {invoice?.invoiceTo.fullAddress}
+            {invoice?.invoiceTo.address1},
             <br />
-            Phone: {invoice?.invoiceTo.phoneNumber}
+            {invoice?.invoiceTo.address2}
+            <br />
+            {invoice?.invoiceTo?.phoneNumber ? 'Phone: ' + invoice?.invoiceTo?.phoneNumber : ''}
             <br />
           </Stack>
 

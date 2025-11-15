@@ -70,6 +70,7 @@ export function AddressListDialog({
             borderRadius: 1,
             display: 'flex',
             flexDirection: 'column',
+            borderBottom: (theme) => `dashed 1px ${theme.palette.divider}`,
             alignItems: 'flex-start',
             ...(selected(`${address.id}`) && {
               bgcolor: 'action.selected',
@@ -87,7 +88,10 @@ export function AddressListDialog({
           )}
 
           <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'left' }}>
-            {address.fullAddress}
+            {address.address1},
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'left' }}>
+            {address.address2}
           </Typography>
 
           {address.phoneNumber && (
@@ -149,7 +153,8 @@ function applyFilter({ inputData, query }: ApplyFilterProps) {
     return inputData.filter(
       (address) =>
         address.name.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
-        address.fullAddress.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
+        address.address1.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
+        address.address2.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
         `${address.company}`.toLowerCase().indexOf(query.toLowerCase()) !== -1
     );
   }

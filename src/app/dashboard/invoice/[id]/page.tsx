@@ -20,6 +20,7 @@ export default async function Page({ params }: Props) {
       const res = await fetch(`http://localhost:8082/api/invoices/${id}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
+        console.log('datadata',data);
         currentInvoice = {
           id: String(data.id),
           sent: data.sent ?? 0, // Add this line, adjust mapping as needed
@@ -34,7 +35,8 @@ export default async function Page({ params }: Props) {
           invoiceTo: data.invoice_to, // You may need to fetch or map this to an address object
           invoiceFrom: {
             name: '',
-            fullAddress: ''
+            address1: '',
+            address2: '',
           }, // You need to fetch or provide this
           createDate: data.created_at,
           dueDate: data.updated_at, // Or another field if you have due date

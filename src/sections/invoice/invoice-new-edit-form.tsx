@@ -67,7 +67,9 @@ const mapFormToApiPayload = (data: NewInvoiceSchemaType) => ({
   status: data.status,
   invoice_to: {
     name: data.invoiceTo?.name || '',
-    fullAddress: data.invoiceTo?.fullAddress || '',
+    address1: data.invoiceTo?.address1 || '',
+    address2: data.invoiceTo?.address2 || '',
+    phoneNumber: data.invoiceTo?.phoneNumber || '',
   },
   invoice_details: {
     items: data.items.map((item) => ({
