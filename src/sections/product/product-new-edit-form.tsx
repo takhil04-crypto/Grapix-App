@@ -148,8 +148,8 @@ export function ProductNewEditForm({ currentProduct }: Props) {
         quantity: data.quantity,
       },
       pricing: {
-        USD: data.price,
-        INR: Math.round(data.price * 83.0), // Example conversion, adjust as needed
+        price: data.price,
+        priceSale: data.priceSale,
       },
       publish_status: data.publish_status ? 'published' : 'draft',
     };
@@ -351,7 +351,7 @@ export function ProductNewEditForm({ currentProduct }: Props) {
             startAdornment: (
               <InputAdornment position="start">
                 <Box component="span" sx={{ color: 'text.disabled' }}>
-                  $
+                  ₹
                 </Box>
               </InputAdornment>
             ),
@@ -368,7 +368,7 @@ export function ProductNewEditForm({ currentProduct }: Props) {
             startAdornment: (
               <InputAdornment position="start">
                 <Box component="span" sx={{ color: 'text.disabled' }}>
-                  $
+                  ₹
                 </Box>
               </InputAdornment>
             ),

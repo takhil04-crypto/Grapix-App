@@ -38,7 +38,7 @@ export const NewInvoiceSchema = zod
     items: zod.array(
       zod.object({
         title: zod.string().min(1, { message: 'Title is required!' }),
-        service: zod.string().min(1, { message: 'Service is required!' }),
+        // service: zod.string().min(1, { message: 'Service is required!' }),
         quantity: zod.number().min(1, { message: 'Quantity must be more than 0' }),
         // Not required
         price: zod.number(),
@@ -75,7 +75,7 @@ const mapFormToApiPayload = (data: NewInvoiceSchemaType) => ({
     items: data.items.map((item) => ({
       title: item.title,
       description: item.description,
-      service: item.service,
+      // service: item.service,
       quantity: item.quantity,
       price: item.price,
       total: item.total,
@@ -115,7 +115,7 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
         {
           title: '',
           description: '',
-          service: '',
+          // service: '',
           quantity: 1,
           price: 0,
           total: 0,
@@ -162,6 +162,7 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
   });
 
   const handleCreateAndSend = handleSubmit(async (data) => {
+    console.log('data',data);
     loadingSend.onTrue();
     try {
       const isEdit = !!currentInvoice;

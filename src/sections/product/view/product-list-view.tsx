@@ -95,8 +95,8 @@ export function ProductListView() {
           images: item.images,
           properties: item.properties,
           category: item.properties?.category || '',
-          inventoryType: item.properties?.quantity > 0 ? 'in_stock' : 'out_of_stock',
-          price: item.pricing?.INR || 0,
+          inventoryType: item.properties?.quantity > 0 ? `${item.properties?.quantity} in_stock` : 'out_of_stock',
+          price: item.pricing?.priceSale || 0,
           publish: item.publish_status,
           createdAt: item.created_at,
           // Add other fields as needed

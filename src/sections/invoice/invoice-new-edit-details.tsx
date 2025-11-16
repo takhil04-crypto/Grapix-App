@@ -1,6 +1,6 @@
 import type { IInvoiceItem } from 'src/types/invoice';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
@@ -11,7 +11,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import { inputBaseClasses } from '@mui/material/InputBase';
-
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Controller } from 'react-hook-form';
 import { fCurrency } from 'src/utils/format-number';
 
 import { INVOICE_SERVICE_OPTIONS } from 'src/_mock';
@@ -32,7 +35,25 @@ export function InvoiceNewEditDetails() {
 
   const subtotal = totalOnRow.reduce((acc, num) => acc + num, 0);
 
-  const totalAmount = subtotal - values.discount - values.shipping + values.taxes;
+  const taxAmount = ((subtotal - values.discount + values.shipping) * (values.taxes || 0)) / 100;
+
+  const totalAmount = subtotal - values.discount - values.shipping + taxAmount;
+    // --- Product fetching state ---
+const [products, setProducts] = useState<{
+  id: number;
+  product_name: string;
+  properties?: any;
+  pricing?: any;
+  sub_description?: string;
+}[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  useEffect(() => {
+    setLoadingProducts(true);
+    fetch('http://localhost:8082/api/products')
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .finally(() => setLoadingProducts(false));
+  }, []);
 
   useEffect(() => {
     setValue('totalAmount', totalAmount);
@@ -125,7 +146,7 @@ export function InvoiceNewEditDetails() {
 
       <Stack direction="row">
         <Box sx={{ color: 'text.secondary' }}>Taxes</Box>
-        <Box sx={{ width: 160 }}>{values.taxes ? fCurrency(values.taxes) : '-'}</Box>
+        <Box sx={{ width: 160 }}>{values.taxes ? fCurrency(taxAmount) : '-'}</Box>
       </Stack>
 
       <Stack direction="row" sx={{ typography: 'subtitle1' }}>
@@ -142,14 +163,73 @@ export function InvoiceNewEditDetails() {
       </Typography>
 
       <Stack divider={<Divider flexItem sx={{ borderStyle: 'dashed' }} />} spacing={3}>
-        {fields.map((item, index) => (
-          <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ width: 1 }}>
-              <Field.Text
-                size="small"
+        {fields.map((item, index) => {
+          const selectedProduct = products.find((p) => p.product_name === values.items[index].title);
+          const stockQty = Number(selectedProduct?.properties?.quantity ?? 0);
+          let stockStatus = '';
+          if (selectedProduct) {
+            if (stockQty === 0) stockStatus = 'Out of stock';
+            else if (stockQty <= 2) stockStatus = 'Low stock';
+            else stockStatus = `In stock: ${stockQty}`;
+          }
+          return (
+            <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ width: 1 }}>
+              <Controller
                 name={`items[${index}].title`}
-                label="Title"
-                InputLabelProps={{ shrink: true }}
+                control={control}
+                render={({ field }) => (
+                  <Autocomplete
+                    options={products}
+                    getOptionLabel={(option) => option.product_name || ''}
+                    loading={loadingProducts}
+                    value={
+                      products.find((p) => p.product_name === field.value) || null
+                    }
+                    onChange={(_, newValue) => {
+                      // Set title
+                      field.onChange(newValue ? newValue.product_name : '');
+                       // Set quantity: 1 if in stock, 0 if out of stock
+                      const qty = Number(newValue?.properties?.quantity) === 0 ? 0 : 1;
+                      setValue(`items[${index}].quantity`, qty);
+                      if (newValue) {
+                        setValue(`items[${index}].description`, newValue?.sub_description || '');
+                        // setValue(`items[${index}].quantity`, Number(newValue?.properties?.quantity) || 0);
+                        setValue(`items[${index}].price`, Number(newValue?.pricing?.priceSale) || 0);
+                        setValue(
+                          `items[${index}].total`,
+                          1 * (Number(newValue?.pricing?.priceSale) || 0)
+                        );
+                      } else {
+                        setValue(`items[${index}].description`, '');
+                        setValue(`items[${index}].quantity`, 0);
+                        setValue(`items[${index}].price`, 0);
+                        setValue(`items[${index}].total`, 0);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Product"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <>
+                              {loadingProducts ? (
+                                <CircularProgress color="inherit" size={20} />
+                              ) : null}
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    sx={{ minWidth: 300, maxWidth: 400 }} // <-- Add this line to increase width
+                  />
+                )}
               />
 
               <Field.Text
@@ -158,7 +238,7 @@ export function InvoiceNewEditDetails() {
                 label="Description"
                 InputLabelProps={{ shrink: true }}
               />
-
+{/* 
               <Field.Select
                 name={`items[${index}].service`}
                 size="small"
@@ -185,7 +265,7 @@ export function InvoiceNewEditDetails() {
                     {service.name}
                   </MenuItem>
                 ))}
-              </Field.Select>
+              </Field.Select> */}
 
               <Field.Text
                 size="small"
@@ -196,8 +276,23 @@ export function InvoiceNewEditDetails() {
                 onChange={(event) => handleChangeQuantity(event, index)}
                 InputLabelProps={{ shrink: true }}
                 sx={{ maxWidth: { md: 96 } }}
+                disabled={selectedProduct && Number(selectedProduct?.properties?.quantity) === 0}
               />
-
+              {selectedProduct && (
+                <Typography
+                  variant="caption"
+                  color={
+                    stockQty === 0
+                      ? 'error.main'
+                      : stockQty <= 2
+                      ? 'warning.main'
+                      : 'success.main'
+                  }
+                  sx={{ ml: 1 }}
+                >
+                  {stockStatus}
+                </Typography>
+              )}
               <Field.Text
                 size="small"
                 type="number"
@@ -208,7 +303,7 @@ export function InvoiceNewEditDetails() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Box sx={{ typography: 'subtitle2', color: 'text.disabled' }}>$</Box>
+                      <Box sx={{ typography: 'subtitle2', color: 'text.disabled' }}>₹</Box>
                     </InputAdornment>
                   ),
                 }}
@@ -227,7 +322,7 @@ export function InvoiceNewEditDetails() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Box sx={{ typography: 'subtitle2', color: 'text.disabled' }}>$</Box>
+                        <Box sx={{ typography: 'subtitle2', color: 'text.disabled' }}>₹</Box>
                     </InputAdornment>
                   ),
                 }}
@@ -247,7 +342,7 @@ export function InvoiceNewEditDetails() {
               Remove
             </Button>
           </Stack>
-        ))}
+        )})}
       </Stack>
 
       <Divider sx={{ my: 3, borderStyle: 'dashed' }} />
@@ -275,7 +370,7 @@ export function InvoiceNewEditDetails() {
         >
           <Field.Text
             size="small"
-            label="Shipping($)"
+            label="Shipping(₹)"
             name="shipping"
             type="number"
             sx={{ maxWidth: { md: 120 } }}
@@ -283,7 +378,7 @@ export function InvoiceNewEditDetails() {
 
           <Field.Text
             size="small"
-            label="Discount($)"
+            label="Discount(₹)"
             name="discount"
             type="number"
             sx={{ maxWidth: { md: 120 } }}
