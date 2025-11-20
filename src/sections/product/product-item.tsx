@@ -28,8 +28,9 @@ type Props = {
 export function ProductItem({ product }: Props) {
   const checkout = useCheckoutContext();
 
-  const { id, name, coverUrl, price, colors, available, sizes, priceSale, newLabel, saleLabel } =
+  const { id, name, coverUrl, available, newLabel, saleLabel } =
     product;
+  const { properties, pricing } = product ?? {};
 
   const linkTo = paths.product.details(id);
 
@@ -39,9 +40,9 @@ export function ProductItem({ product }: Props) {
       name,
       coverUrl,
       available,
-      price,
-      colors: [colors[0]],
-      size: sizes[0],
+      price: pricing?.price,
+      colors: [properties?.color[0]],
+      size: properties?.storage[0],
       quantity: 1,
     };
     try {
@@ -119,16 +120,16 @@ export function ProductItem({ product }: Props) {
       </Link>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <ColorPreview colors={colors} />
+        <ColorPreview colors={Array.isArray(properties?.color) ? properties?.color : properties?.color ? [properties?.color] : []} />
 
         <Stack direction="row" spacing={0.5} sx={{ typography: 'subtitle1' }}>
-          {priceSale && (
+          {pricing?.priceSale && (
             <Box component="span" sx={{ color: 'text.disabled', textDecoration: 'line-through' }}>
-              {fCurrency(priceSale)}
+              {fCurrency(pricing?.priceSale)}
             </Box>
           )}
 
-          <Box component="span">{fCurrency(price)}</Box>
+          <Box component="span">{fCurrency(pricing?.price)}</Box>
         </Stack>
       </Stack>
     </Stack>

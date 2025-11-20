@@ -36,42 +36,47 @@ export type IProductReview = {
 
 export type IProductItem = {
   id: string;
-  sku: string;
   name: string;
-  code: string;
-  price: number;
-  taxes: number;
-  tags: string[];
-  sizes: string[];
-  publish: string;
-  gender: string[];
-  coverUrl: string;
+  subDescription: string;
+  description: string;
   images: string[];
-  colors: string[];
-  quantity: number;
+  coverUrl: string;
+  tags: string[];
+  taxes: number;
+  gender: string[];
   category: string;
+  newLabel: {
+    enabled: boolean;
+    content: string;
+  };
+  saleLabel: {
+    enabled: boolean;
+    content: string;
+  };
+  publish: string;
+  createdAt: IDateValue;
   available: number;
   totalSold: number;
-  description: string;
   totalRatings: number;
   totalReviews: number;
-  createdAt: IDateValue;
   inventoryType: string;
-  subDescription: string;
-  priceSale: number | null;
   reviews: IProductReview[];
   ratings: {
     name: string;
     starCount: number;
     reviewCount: number;
   }[];
-  saleLabel: {
-    enabled: boolean;
-    content: string;
+  properties: {
+    color: string;
+    storage: string;
+    category: string;
+    sku: string;
+    code: string;
+    quantity: number;
   };
-  newLabel: {
-    enabled: boolean;
-    content: string;
+  pricing: {
+    price: number;
+    priceSale: number | null;
   };
   publish_status?: 'published' | 'draft';
 };

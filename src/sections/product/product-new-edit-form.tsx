@@ -74,18 +74,24 @@ export function ProductNewEditForm({ currentProduct }: Props) {
       description: currentProduct?.description || '',
       subDescription: currentProduct?.subDescription || '',
       images: currentProduct?.images || [],
-      //
-      code: currentProduct?.code || '',
-      sku: currentProduct?.sku || '',
-      price: currentProduct?.price || 0,
-      quantity: currentProduct?.quantity || 0,
-      priceSale: currentProduct?.priceSale || 0,
+      code: currentProduct?.properties?.code || '',
+      sku: currentProduct?.properties?.sku || '',
+      price: currentProduct?.pricing?.price || 0,
+      quantity: currentProduct?.properties?.quantity || 0,
+      priceSale: currentProduct?.pricing?.priceSale || 0,
       tags: currentProduct?.tags || [],
       taxes: currentProduct?.taxes || 0,
       gender: currentProduct?.gender || [],
-      category: currentProduct?.category || PRODUCT_CATEGORY_GROUP_OPTIONS[0].classify[1],
-      colors: currentProduct?.colors || [],
-      sizes: currentProduct?.sizes || [],
+      category:
+        currentProduct?.properties?.category ||
+        currentProduct?.category ||
+        PRODUCT_CATEGORY_GROUP_OPTIONS[0].classify[1],
+      colors: currentProduct?.properties?.color
+        ? [currentProduct.properties.color]
+        : [],
+      sizes: currentProduct?.properties?.storage
+        ? [currentProduct.properties.storage]
+        : [],
       newLabel: currentProduct?.newLabel || { enabled: false, content: '' },
       saleLabel: currentProduct?.saleLabel || { enabled: false, content: '' },
       publish_status:
