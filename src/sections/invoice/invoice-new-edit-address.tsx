@@ -13,6 +13,11 @@ import { _addressBooks } from 'src/_mock';
 
 import { Iconify } from 'src/components/iconify';
 
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+
+import { UserNewEditForm } from 'src/sections/user/user-new-edit-form';
 import { AddressListDialog } from '../address';
 
 // ----------------------------------------------------------------------
@@ -35,7 +40,8 @@ export function InvoiceNewEditAddress() {
   const from = useBoolean();
 
   const to = useBoolean();
-  const [customers, setCustomers] = useState([]);
+  const createCustomer = useBoolean();
+  const [customers, setCustomers] = useState<any[]>([]);
 
     useEffect(() => {
     async function fetchCustomers() {
@@ -151,11 +157,42 @@ export function InvoiceNewEditAddress() {
             size="small"
             startIcon={<Iconify icon="mingcute:add-line" />}
             sx={{ alignSelf: 'flex-end' }}
+            onClick={() => {
+               to.onFalse();
+               createCustomer.onTrue();
+            }}
           >
             New
           </Button>
         }
       />
+      
+      <Dialog
+        fullWidth
+        maxWidth="md"
+        open={createCustomer.value}
+        onClose={createCustomer.onFalse}
+      >
+        <DialogTitle>Create New Customer</DialogTitle>
+        <DialogContent>
+           <UserNewEditForm 
+             onCreateSuccess={(newCustomer) => {
+                const mappedCustomer = {
+                    id: newCustomer.id,
+                    name: newCustomer.name,
+                    email: newCustomer.email,
+                    phoneNumber: newCustomer.phone,
+                    address1: [newCustomer.address1, newCustomer.address2].filter(Boolean).join(', '),
+                    address2: [newCustomer.city, newCustomer.state, newCustomer.zip].filter(Boolean).join(', '),
+                };
+                
+                setCustomers((prev) => [...prev, mappedCustomer]);
+                setValue('invoiceTo', mappedCustomer);
+                createCustomer.onFalse();
+             }}
+           />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

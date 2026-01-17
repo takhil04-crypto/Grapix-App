@@ -1,7 +1,7 @@
 import type { IInvoice } from 'src/types/invoice';
 
 import { z as zod } from 'zod';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -34,28 +34,28 @@ export const NewInvoiceSchema = zod
       message: { required_error: 'Invoice to is required!' },
     }),
     createDate: schemaHelper.date({ message: { required_error: 'Create date is required!' } }),
-    dueDate: schemaHelper.date({ message: { required_error: 'Due date is required!' } }),
+    dueDate: zod.any().nullable(),
     items: zod.array(
       zod.object({
-        title: zod.string().min(1, { message: 'Title is required!' }),
+        title: zod.string(),
         // service: zod.string().min(1, { message: 'Service is required!' }),
-        quantity: zod.number().min(1, { message: 'Quantity must be more than 0' }),
+        quantity: zod.coerce.number().min(1, { message: 'Quantity must be more than 0' }),
         // Not required
-        price: zod.number(),
-        total: zod.number(),
+        price: zod.coerce.number(),
+        total: zod.coerce.number(),
         description: zod.string(),
       })
     ),
     // Not required
-    taxes: zod.number(),
+    taxes: zod.coerce.number(),
     status: zod.string(),
-    discount: zod.number(),
-    shipping: zod.number(),
-    totalAmount: zod.number(),
+    discount: zod.coerce.number(),
+    shipping: zod.coerce.number(),
+    totalAmount: zod.coerce.number(),
     invoiceNumber: zod.string(),
     invoiceFrom: zod.custom<IInvoice['invoiceFrom']>().nullable(),
   })
-  .refine((data) => !fIsAfter(data.createDate, data.dueDate), {
+  .refine((data) => !data.dueDate || !fIsAfter(data.createDate, data.dueDate), {
     message: 'Due date cannot be earlier than create date!',
     path: ['dueDate'],
   });
@@ -99,6 +99,95 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
 
   const loadingSend = useBoolean();
 
+  // --- Product fetching state ---
+  const [products, setProducts] = useState<{
+    id: number;
+    product_name: string;
+    properties?: any;
+    pricing?: any;
+    sub_description?: string;
+  }[]>([]);
+  
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  useEffect(() => {
+    setLoadingProducts(true);
+    fetch('http://localhost:8082/api/products?limit=1000')
+      .then((res) => {
+          if (!res.ok) throw new Error(res.statusText);
+          return res.json();
+      })
+      .then((data) => {
+          if (Array.isArray(data)) {
+             setProducts(data);
+          } else {
+             console.error("Products API returned non-array:", data);
+             setProducts([]);
+          }
+      })
+      .catch((err) => {
+          console.error("Failed to fetch products:", err);
+          setProducts([]); 
+      })
+      .finally(() => setLoadingProducts(false));
+  }, []);
+
+  const createNewProduct = async (productName: string, price: number, description: string) => {
+    try {
+      console.log('Creating new product:', productName);
+      const payload = {
+         product_name: productName,
+         properties: { quantity: 100 },
+         pricing: { priceSale: price },
+         sub_description: description || '',
+         content: '',
+         images: [],
+         publish_status: 'published'
+      };
+      
+      console.log('Sending payload:', payload);
+
+      const response = await fetch('http://localhost:8082/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+         const errorText = await response.text();
+         console.error('Data error:', errorText);
+         throw new Error(`Server responded with ${response.status}: ${errorText}`);
+      }
+
+      const newProduct = await response.json();
+      console.log('Product created successfully:', newProduct);
+      return newProduct;
+    } catch (error) {
+       console.error("Failed to create product:", error);
+       return null;
+    }
+  };
+
+  const ensureCustomProductsExist = async (invoiceItems: any[]) => {
+    try {
+      await Promise.all(invoiceItems.map(async (item) => {
+        if (!item.title) return;
+        
+        const exists = Array.isArray(products) ? products.find(p => p.product_name === item.title) : undefined;
+        
+        if (!exists) {
+          // Create new product
+          const newProduct = await createNewProduct(item.title, item.price, item.description);
+          if (newProduct) {
+             setProducts(prev => [...(Array.isArray(prev) ? prev : []), newProduct]);
+          }
+        }
+      }));
+    } catch (error) {
+      console.error("Error creating custom products:", error);
+    }
+  };
+
   const defaultValues = useMemo(
     () => ({
       invoiceNumber: currentInvoice?.invoiceNumber || 'INV-1',
@@ -137,9 +226,17 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
     formState: { isSubmitting },
   } = methods;
 
+  const onError = (errors: any) => {
+    console.error("Form Validation Errors:", errors);
+    const errorMessages = Object.values(errors).map((e: any) => e.message).join('\n');
+    alert(`Please fix the following errors:\n${errorMessages}`);
+  };
+
   const handleSaveAsDraft = handleSubmit(async (data) => {
     loadingSave.onTrue();
     try {
+      await ensureCustomProductsExist(data.items);
+
       const isEdit = !!currentInvoice;
       const payload = {
         ...(isEdit ? { id: currentInvoice.id } : {}),
@@ -147,44 +244,64 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
       };
       const url = 'http://localhost:8082/api/invoices';
       const method = isEdit ? 'PUT' : 'POST';
-      await fetch(url, {
+      const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+         const errText = await response.text();
+         throw new Error(errText);
+      }
+
       reset();
       loadingSave.onFalse();
       router.push(paths.dashboard.invoice.root);
     } catch (error) {
-      console.error(error);
+      console.error("Save Draft Error:", error);
+      // alert(`Failed to save invoice: ${error.message}`);
       loadingSave.onFalse();
     }
-  });
+  }, onError);
 
   const handleCreateAndSend = handleSubmit(async (data) => {
-    console.log('data',data);
+    console.log('handleCreateAndSend data',data);
     loadingSend.onTrue();
     try {
+      await ensureCustomProductsExist(data.items);
+
       const isEdit = !!currentInvoice;
       const payload = {
         ...(isEdit ? { id: currentInvoice.id } : {}),
         ...mapFormToApiPayload({ ...data, status: 'paid' }),
       };
+      
+      console.log('Sending invoice payload:', payload);
+
       const url = 'http://localhost:8082/api/invoices';
       const method = isEdit ? 'PUT' : 'POST';
-      await fetch(url, {
+      const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+         const errText = await response.text();
+         throw new Error(errText);
+      }
+      
+      console.log('Invoice created successfully');
       reset();
       loadingSend.onFalse();
       router.push(paths.dashboard.invoice.root);
     } catch (error) {
-      console.error(error);
+      console.error("Create Send Error:", error);
+      alert(`Failed to create invoice: ${error.message}`);
       loadingSend.onFalse();
     }
-  });
+  }, onError);
 
   return (
     <Form methods={methods}>
@@ -193,7 +310,7 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
 
         <InvoiceNewEditStatusDate currentInvoice={currentInvoice} />
 
-        <InvoiceNewEditDetails />
+        <InvoiceNewEditDetails products={products} loadingProducts={loadingProducts} />
       </Card>
 
       <Stack justifyContent="flex-end" direction="row" spacing={2} sx={{ mt: 3 }}>
@@ -211,7 +328,8 @@ export function InvoiceNewEditForm({ currentInvoice }: Props) {
           size="large"
           variant="contained"
           loading={loadingSend.value && isSubmitting}
-          onClick={handleCreateAndSend}
+          onClick={handleCreateAndSend} // Pass onError here if possible, but handleSubmit wraps it.
+          // The onClick should be the result of handleSubmit(valid, invalid)
         >
           {currentInvoice ? 'Update' : 'Create'} & send
         </LoadingButton>

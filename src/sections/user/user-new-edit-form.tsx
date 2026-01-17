@@ -33,7 +33,7 @@ export type NewUserSchemaType = zod.infer<typeof NewUserSchema>;
 export const NewUserSchema = zod.object({
   avatarUrl: zod.any().nullable(),
   name: zod.string().min(1, { message: 'Name is required!' }),
-  email: zod.string().optional(),
+  email: zod.string().email().optional().or(zod.literal('')),
   phoneNumber: schemaHelper.phoneNumber({ isValidPhoneNumber }),
   country: zod.any().nullable(),
   address1: zod.string().optional(),
@@ -50,9 +50,10 @@ export const NewUserSchema = zod.object({
 
 type Props = {
   currentUser?: IUserItem;
+  onCreateSuccess?: (customer: any) => void;
 };
 
-export function UserNewEditForm({ currentUser }: Props) {
+export function UserNewEditForm({ currentUser, onCreateSuccess }: Props) {
   const router = useRouter();
   console.log('Current User:', currentUser);
   const defaultValues = useMemo(
@@ -94,7 +95,7 @@ export function UserNewEditForm({ currentUser }: Props) {
     // Map form data to API payload
     const payload = {
       name: data.name,
-      email: data.email,
+      email: data.email || null,
       phone: data.phoneNumber,
       country: typeof data.country === 'string' ? data.country : data.country?.label || '',
       state: data.state,
@@ -117,11 +118,18 @@ export function UserNewEditForm({ currentUser }: Props) {
         throw new Error(isEdit ? 'Failed to update customer' : 'Failed to create customer');
       }
 
+      const result = await response.json();
+
       reset();
       toast.success(isEdit ? 'Customer updated successfully!' : 'Customer created successfully!');
-      router.push(paths.dashboard.user.list);
+      
+      if (onCreateSuccess) {
+        onCreateSuccess(result);
+      } else {
+        router.push(paths.dashboard.user.list);
+      }
+      
       // Optionally log response
-      const result = await response.json();
       console.info('API response:', result);
     } catch (error) {
       toast.error(currentUser?.id ? 'Failed to update customer!' : 'Failed to create customer!');

@@ -24,7 +24,18 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export function InvoiceNewEditDetails() {
+type Props = {
+  products: {
+    id: number;
+    product_name: string;
+    properties?: any;
+    pricing?: any;
+    sub_description?: string;
+  }[];
+  loadingProducts: boolean;
+};
+
+export function InvoiceNewEditDetails({ products, loadingProducts }: Props) {
   const { control, setValue, watch } = useFormContext();
 
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
@@ -38,22 +49,6 @@ export function InvoiceNewEditDetails() {
   const taxAmount = ((subtotal - values.discount + values.shipping) * (values.taxes || 0)) / 100;
 
   const totalAmount = subtotal - values.discount - values.shipping + taxAmount;
-    // --- Product fetching state ---
-const [products, setProducts] = useState<{
-  id: number;
-  product_name: string;
-  properties?: any;
-  pricing?: any;
-  sub_description?: string;
-}[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  useEffect(() => {
-    setLoadingProducts(true);
-    fetch('http://localhost:8082/api/products')
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
-      .finally(() => setLoadingProducts(false));
-  }, []);
 
   useEffect(() => {
     setValue('totalAmount', totalAmount);
@@ -180,31 +175,46 @@ const [products, setProducts] = useState<{
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
+                    freeSolo
                     options={products}
-                    getOptionLabel={(option) => option.product_name || ''}
+                    getOptionLabel={(option) => (typeof option === 'string' ? option : option.product_name || '')}
                     loading={loadingProducts}
                     value={
-                      products.find((p) => p.product_name === field.value) || null
+                      products.find((p) => p.product_name === field.value) || field.value || null
                     }
+                    onInputChange={(event, newInputValue) => {
+                      field.onChange(newInputValue);
+                    }}
                     onChange={(_, newValue) => {
-                      // Set title
-                      field.onChange(newValue ? newValue.product_name : '');
-                       // Set quantity: 1 if in stock, 0 if out of stock
-                      const qty = Number(newValue?.properties?.quantity) === 0 ? 0 : 1;
-                      setValue(`items[${index}].quantity`, qty);
-                      if (newValue) {
+                      if (typeof newValue === 'string') {
+                         // User typed a custom value and pressed enter (or via input change)
+                         field.onChange(newValue);
+                         // Reset other fields if needed, but careful not to wipe if just typing
+                         if (!products.find(p => p.product_name === newValue)) {
+                           setValue(`items[${index}].quantity`, 1); 
+                           setValue(`items[${index}].price`, 0);
+                           setValue(`items[${index}].total`, 0);
+                           setValue(`items[${index}].description`, '');
+                         }
+                      } else if (newValue && typeof newValue === 'object') {
+                        // User selected an existing item
+                        field.onChange(newValue.product_name);
+                        
+                        const qty = Number(newValue?.properties?.quantity) === 0 ? 0 : 1;
+                        setValue(`items[${index}].quantity`, qty);
                         setValue(`items[${index}].description`, newValue?.sub_description || '');
-                        // setValue(`items[${index}].quantity`, Number(newValue?.properties?.quantity) || 0);
                         setValue(`items[${index}].price`, Number(newValue?.pricing?.priceSale) || 0);
                         setValue(
                           `items[${index}].total`,
-                          1 * (Number(newValue?.pricing?.priceSale) || 0)
+                          qty * (Number(newValue?.pricing?.priceSale) || 0)
                         );
                       } else {
-                        setValue(`items[${index}].description`, '');
+                        // Cleared
+                        field.onChange('');
                         setValue(`items[${index}].quantity`, 0);
                         setValue(`items[${index}].price`, 0);
                         setValue(`items[${index}].total`, 0);
+                        setValue(`items[${index}].description`, '');
                       }
                     }}
                     renderInput={(params) => (
@@ -226,8 +236,11 @@ const [products, setProducts] = useState<{
                         }}
                       />
                     )}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    sx={{ minWidth: 300, maxWidth: 400 }} // <-- Add this line to increase width
+                    isOptionEqualToValue={(option, value) => {
+                      if (typeof value === 'string') return option.product_name === value;
+                      return option.id === value?.id;
+                    }}
+                    sx={{ minWidth: 300, maxWidth: 400 }} 
                   />
                 )}
               />

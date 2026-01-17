@@ -126,7 +126,7 @@ export function InvoiceDetails({ invoice }: Props) {
           <TableRow>
             <TableCell width={40}>#</TableCell>
 
-            <TableCell sx={{ typography: 'subtitle2' }}>Description</TableCell>
+            <TableCell sx={{ typography: 'subtitle2' }}>Product</TableCell>
 
             <TableCell>Qty</TableCell>
 
@@ -144,10 +144,6 @@ export function InvoiceDetails({ invoice }: Props) {
               <TableCell>
                 <Box sx={{ maxWidth: 560 }}>
                   <Typography variant="subtitle2">{row.title}</Typography>
-
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-                    {row.description}
-                  </Typography>
                 </Box>
               </TableCell>
 
